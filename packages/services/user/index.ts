@@ -1,0 +1,89 @@
+import { createHmac, randomBytes } from 'node:crypto'
+import * as JWT from 'jsonwebtoken'
+import {db, eq, ne} from "@repo/database"
+import {usersTable} from "@repo/database/models/user"
+import { env } from '../env'
+import { createUserWithEmailAndPasswordInput, CreateUserWithEmailAndPasswordInputType, generateUserTokenPayload, GenerateUserTokenPayloadType, signInUserWithEmailAndPasswordInput, SignInUserWithEmailAndPasswordInputType } from './model'
+
+class UserService {
+
+    private async generatehash(salt:string,data:string){
+        return createHmac('sha256',salt).update(data).digest('hex')
+
+    }
+    private async getUserByEmail(email:string){
+            const result = await db.select().from(usersTable).where(eq(usersTable.email, email))
+            if(!result || result.length === 0) return null
+            return result[0]
+    }
+
+    private async generateUserToken (payload:GenerateUserTokenPayloadType ) {
+        const {id} = await generateUserTokenPayload.parseAsync(payload)
+        const token = JWT.sign(id,env.JWT_SECRET)
+
+        //why do i returning object? i might need to return more thing: Using Open close design pattern
+        return {
+            token
+        }
+
+    }
+
+    public async createUserWithEmailAndPassword(payload:CreateUserWithEmailAndPasswordInputType){
+
+       const{fullName, email, password} = await createUserWithEmailAndPasswordInput.parseAsync(payload)
+       
+       //check if user exists in DB
+       const existingUserWithEmail = await this.getUserByEmail(email)
+       if(existingUserWithEmail) throw new Error("User with the email already exists")
+
+        // caculate hash and create a hash
+        const salt = randomBytes(16).toString('hex')
+        const hash = await this.generatehash(salt,password)
+        const insertUserResult = await db.insert(usersTable).values({email,password:hash,fullName,salt}).returning({id:usersTable.id})
+
+        if(!insertUserResult || insertUserResult.length === 0 || !insertUserResult[0]?.id ) throw new Error("Something went wrong while creating a user")
+          
+
+        const userId = insertUserResult[0].id
+
+        const {token} = await this.generateUserToken({id:userId })
+
+        return {
+            id: userId,
+            token
+        }
+
+       
+    }
+
+    public async signInUserWithEmailAndPassword(payload:SignInUserWithEmailAndPasswordInputType){
+        const {email,password} = await signInUserWithEmailAndPasswordInput.parseAsync(payload)
+
+
+         //check if user exists in DB
+        const existingUserWithEmail = await this.getUserByEmail(email)
+        if(!existingUserWithEmail) throw new Error("Invalid credentials")
+    
+        if(!existingUserWithEmail.password || !existingUserWithEmail.salt){
+            throw new Error("Invalid authentication method")
+        }
+        
+        const hash = await this.generatehash(existingUserWithEmail.salt, password)
+
+        if(hash !== existingUserWithEmail.password){
+            throw new Error("Invalid credentials")
+        }
+
+        const {token} = await this.generateUserToken({id:existingUserWithEmail.id })
+
+
+        return {
+            id:existingUserWithEmail.id,
+            token
+        }
+
+
+    }
+}
+
+export default UserService
