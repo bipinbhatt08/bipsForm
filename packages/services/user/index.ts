@@ -4,6 +4,7 @@ import {db, eq, ne} from "@repo/database"
 import {usersTable} from "@repo/database/models/user"
 import { env } from '../env'
 import { createUserWithEmailAndPasswordInput, CreateUserWithEmailAndPasswordInputType, generateUserTokenPayload, GenerateUserTokenPayloadType, signInUserWithEmailAndPasswordInput, SignInUserWithEmailAndPasswordInputType } from './model'
+import { CustomError } from '../utils/errors'
 
 class UserService {
 
@@ -34,14 +35,14 @@ class UserService {
        
        //check if user exists in DB
        const existingUserWithEmail = await this.getUserByEmail(email)
-       if(existingUserWithEmail) throw new Error("User with the email already exists")
+       if(existingUserWithEmail) throw CustomError.conflict("User with the email already exists")
 
         // caculate hash and create a hash
         const salt = randomBytes(16).toString('hex')
         const hash = await this.generatehash(salt,password)
         const insertUserResult = await db.insert(usersTable).values({email,password:hash,fullName,salt}).returning({id:usersTable.id})
 
-        if(!insertUserResult || insertUserResult.length === 0 || !insertUserResult[0]?.id ) throw new Error("Something went wrong while creating a user")
+        if(!insertUserResult || insertUserResult.length === 0 || !insertUserResult[0]?.id ) throw CustomError.internal("Something went wrong while creating a user")
           
 
         const userId = insertUserResult[0].id
@@ -62,16 +63,16 @@ class UserService {
 
          //check if user exists in DB
         const existingUserWithEmail = await this.getUserByEmail(email)
-        if(!existingUserWithEmail) throw new Error("Invalid credentials")
+        if(!existingUserWithEmail) throw  CustomError.unAuthorized("Invalid credentials")
     
         if(!existingUserWithEmail.password || !existingUserWithEmail.salt){
-            throw new Error("Invalid authentication method")
+            throw CustomError.unAuthorized("Invalid authentication method")
         }
         
         const hash = await this.generatehash(existingUserWithEmail.salt, password)
 
         if(hash !== existingUserWithEmail.password){
-            throw new Error("Invalid credentials")
+            throw CustomError.unAuthorized("Invalid credentials")
         }
 
         const {token} = await this.generateUserToken({id:existingUserWithEmail.id })
