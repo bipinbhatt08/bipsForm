@@ -8,6 +8,13 @@
       "when": 1778998204316,
       "tag": "0000_powerful_jocasta",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779317962671,
+      "tag": "0001_chunky_vindicator",
+      "breakpoints": true
     }
   ]
 }
