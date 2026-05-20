@@ -32,10 +32,11 @@ type SignupFormValues = {
 
 export function SignupForm() {
   const {createUserWithEmailAndPasswordAsync} = useSignUp()
-const {
+  const {
   register,
   handleSubmit,
   watch,
+  setError,
   formState:{
     errors
   }
@@ -52,20 +53,25 @@ const {
 
 const submit = async(values:SignupFormValues) =>{
 
-  try {
+    try {
     const payload = {
-      email: values.email,
-      password: values.password,
-      fullName: values.fullName,
+        email: values.email,
+        password: values.password,
+        fullName: values.fullName,
     }
 
   await createUserWithEmailAndPasswordAsync(payload)
+      
+      toast.success("Account created successfully")
+    } catch (err:any) {
 
-    toast.success("Account created successfully")
-  } catch (err) {
-    toast.error(err?.message || "Something went wrong")
-  }
-}
+        setError('root', {
+          type: 'Server',
+          message: err.message || 'Something went wrong',
+        })
+        
+      }
+    }
 
   return (
     <div className={cn("flex flex-col gap-6",)} >
@@ -130,10 +136,12 @@ const submit = async(values:SignupFormValues) =>{
                 {errors?.confirmPassword && <FieldError>
                   {errors.confirmPassword.message}</FieldError>}
               </Field>
+                {errors?.root && <FieldError className="text-center">
+                  {errors.root.message}</FieldError>}
               <Field>
                 <Button type="submit">Create Account</Button>
                  <FieldDescription className="px-6 text-center">
-            Already have an account? <a href="#">Sign in</a>
+            Already have an account? <a href="login">Sign in</a>
           </FieldDescription>
               </Field>
                       <FieldSeparator>Or continue with </FieldSeparator>
