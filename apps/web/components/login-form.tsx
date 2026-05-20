@@ -52,7 +52,7 @@ export function LoginForm({ className,...props}: React.ComponentProps<"div">) {
       try {
         await signInUserWithEmailAndPasswordAsync(values)
         setError("root", {}) // optional clear
-        router.push('/dashboard')
+        router.replace('/dashboard')//use can not go back to login by doing back
       } catch (err:any) {
         setError("root",{
           type:"server",

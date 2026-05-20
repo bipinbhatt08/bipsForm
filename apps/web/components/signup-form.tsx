@@ -20,6 +20,7 @@ import { Input } from "~/components/ui/input"
 import { useForm } from "react-hook-form"
 import { useSignUp } from "~/hooks/api/auth"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 type SignupFormValues = {
   fullName: string
@@ -31,6 +32,9 @@ type SignupFormValues = {
 
 
 export function SignupForm() {
+
+  const router = useRouter()
+
   const {createUserWithEmailAndPasswordAsync} = useSignUp()
   const {
   register,
@@ -63,6 +67,7 @@ const submit = async(values:SignupFormValues) =>{
   await createUserWithEmailAndPasswordAsync(payload)
       
       toast.success("Account created successfully")
+      router.replace('/dashboard')
     } catch (err:any) {
 
         setError('root', {

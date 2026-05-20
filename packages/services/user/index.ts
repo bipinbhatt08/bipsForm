@@ -20,12 +20,34 @@ class UserService {
 
     private async generateUserToken (payload:GenerateUserTokenPayloadType ) {
         const {id} = await generateUserTokenPayload.parseAsync(payload)
-        const token = JWT.sign(id,env.JWT_SECRET)
+        const token = JWT.sign({id},env.JWT_SECRET)
 
         //why do i returning object? i might need to return more thing: Using Open close design pattern
         return {
             token
         }
+
+    }
+    private async verifyUserToken (token:string):Promise<GenerateUserTokenPayloadType>{
+        try {
+            const decoded = await JWT.verify(token,env.JWT_SECRET) as GenerateUserTokenPayloadType
+            return decoded
+        } catch (error) {
+            throw CustomError.unAuthorized("Invalid user token")
+        }
+    }
+
+    private async getUserInfoById(id:string){
+        const user = await db.select({
+            id: usersTable.id,
+            email:usersTable.email,
+            fullName:usersTable.fullName,
+            profileImageUrl: usersTable.profileImageUrl
+        }).from(usersTable).where(eq(usersTable.id, id))
+
+        if(!user || user.length === 0)  throw CustomError.notFound("User not found")
+    
+        return user[0]!
 
     }
 
@@ -85,6 +107,13 @@ class UserService {
 
 
     }
+
+    public async verifyAndDecodeUserToken(token:string){
+        const {id} = await this.verifyUserToken(token)
+        const userInfo =  await this.getUserInfoById(id)
+        return {...userInfo}
+    }
+
 }
 
 export default UserService

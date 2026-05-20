@@ -1,5 +1,23 @@
+'use client'
+import { useEffect } from "react";
+import { useUser } from "~/hooks/api/auth";
+import { useRouter } from "next/navigation";
 
-export default async function Home() {
+export default  function Home() {
+  const {user, isLoading} = useUser()
+  
+  const router = useRouter()
+
+  useEffect(()=>{
+     if (isLoading) return
+    if(user && user.id){
+        router.replace('/dashboard')
+    }else{
+      router.replace('/login')
+    }
+  },[user,router,isLoading])
+
+
   return (
     <main className="min-h-screen min-w-screen flex justify-center items-center">
       <div>

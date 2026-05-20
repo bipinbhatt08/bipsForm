@@ -1,9 +1,10 @@
+import { CustomError } from "@repo/services/utils/errors";
 import { userService } from "../../services";
 import { publicProcedure, router } from "../../trpc";
-import { setAuthenticationCookie } from "../../utils/cookie";
+import { getAuthenticationCookie, setAuthenticationCookie } from "../../utils/cookie";
 import { generatePath } from "../../utils/path-generator";
 
-import {  createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswordOutputModel, signInUserWithEmailAndPasswordInputModel, signInUserWithEmailAndPasswordOutputModel } from "./model";
+import {  createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswordOutputModel, getLoggedInUserInfoInputModel, getLoggedInUserInfoOutputModel, signInUserWithEmailAndPasswordInputModel, signInUserWithEmailAndPasswordOutputModel } from "./model";
 
 const TAGS = ["Authentication"];
 const getPath = generatePath("/authentication");
@@ -53,5 +54,22 @@ export const authRouer = router({
           id
         }
 
+    }),
+    
+    getLoggedInUserInfo: publicProcedure
+    .meta({
+     openapi:{
+      method:"GET",
+      path:getPath("/getLoggedInUserInfo"),
+      tags:TAGS
+     }
+    })
+    .input(getLoggedInUserInfoInputModel)
+    .output(getLoggedInUserInfoOutputModel)
+    .query(async({ctx})=>{
+      const userToken = getAuthenticationCookie(ctx)
+      if(!userToken) throw CustomError.unAuthorized("User is not logged in ")
+        const {id,fullName,email,profileImageUrl} = await userService.verifyAndDecodeUserToken(userToken)
+        return { id, fullName, email, profileImageUrl }
     })
 })  
