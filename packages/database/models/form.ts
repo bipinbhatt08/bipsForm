@@ -22,8 +22,8 @@ export const formsTable = pgTable("forms", {
   isLocked: boolean("is_locked").default(false),
   passwordHash: varchar("password_hash"),
 
-  isPublished: boolean().default(false),
-  isPublic: boolean().default(false),
+  isPublished: boolean("is_published").default(false),
+  isPublic: boolean("is_public").default(false),
 
 
   themeId: text("theme_id").default("minimal"),

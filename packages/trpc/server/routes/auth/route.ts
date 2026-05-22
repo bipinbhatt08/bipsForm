@@ -1,6 +1,6 @@
 import { CustomError } from "@repo/services/utils/errors";
 import { userService } from "../../services";
-import { publicProcedure, router } from "../../trpc";
+import { authenticatedProcedure, publicProcedure, router } from "../../trpc";
 import { getAuthenticationCookie, setAuthenticationCookie } from "../../utils/cookie";
 import { generatePath } from "../../utils/path-generator";
 
@@ -56,7 +56,7 @@ export const authRouer = router({
 
     }),
     
-    getLoggedInUserInfo: publicProcedure
+    getLoggedInUserInfo: authenticatedProcedure
     .meta({
      openapi:{
       method:"GET",
@@ -67,9 +67,14 @@ export const authRouer = router({
     .input(getLoggedInUserInfoInputModel)
     .output(getLoggedInUserInfoOutputModel)
     .query(async({ctx})=>{
-      const userToken = getAuthenticationCookie(ctx)
-      if(!userToken) throw CustomError.unAuthorized("User is not logged in ")
-        const {id,fullName,email,profileImageUrl} = await userService.verifyAndDecodeUserToken(userToken)
-        return { id, fullName, email, profileImageUrl }
+      
+        const {id,fullName,email,profileImageUrl} = await userService.getUserInfoById(ctx.user.id)
+
+        return { 
+          id,
+          fullName,
+          email,
+          profileImageUrl
+        }
     })
 })  

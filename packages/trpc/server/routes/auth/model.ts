@@ -1,4 +1,4 @@
-import {email, z} from 'zod'
+import { z} from 'zod'
 
 export const createUserWithEmailAndPasswordInputModel = z.object({
     fullName : z.string().describe("Name of the user"),
