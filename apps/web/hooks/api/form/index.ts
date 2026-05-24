@@ -78,9 +78,26 @@ export const useCreateFormField = () => {
 }
 
 export const useGetFormFields = (formId: string) => {
-    const { data, error, isLoading, isError, isSuccess } = trpc.form.getFormFields.useQuery({ formId })
+    const { data, error, isLoading, isError, isSuccess } = trpc.form.getFormFields.useQuery(
+        { formId },
+        { enabled: !!formId }
+    )
     return {
         fields: data ?? [],
+        error,
+        isLoading,
+        isError,
+        isSuccess,
+    }
+}
+
+export const useGetFormBySlug = (slug: string) => {
+    const { data, error, isLoading, isError, isSuccess } = trpc.form.getFormBySlug.useQuery(
+        { slug },
+        { enabled: !!slug }//It tells tRPC / React Query “ONLY run this API call if slug exists”
+    )
+    return {
+        form: data ?? null,
         error,
         isLoading,
         isError,
