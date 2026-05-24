@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import { db, eq } from '@repo/database'
+import { and, db, eq } from '@repo/database'
 import { formsTable } from '@repo/database/models/form'
 import { CustomError } from '../utils/errors'
 import { createFormInput, CreateFormInputType } from './model'
@@ -12,6 +12,11 @@ class FormService {
         return `${base}-${suffix}`
     }
 
+    public async checkFormExistance(formId:string){
+        const formExists = await db.select().from(formsTable).where(eq(formsTable.id, formId))
+        if(formExists.length === 0) return null
+        return formExists[0]
+    }
     public async getMyForms(userId: string) {
         return db
             .select({
@@ -46,6 +51,32 @@ class FormService {
         return result[0]!
     }
 
+    public async verifyFormOwnership(formId: string, userId: string) {
+        const form = await db
+            .select({ id: formsTable.id })
+            .from(formsTable)
+            .where(
+                and(
+                    eq(formsTable.id, formId),
+                    eq(formsTable.createdBy, userId)
+                )
+            )
+            .limit(1)
+
+        if (!form || form.length === 0)
+            throw CustomError.forbidden("You do not have access to this form")
+    }
+
+    public async getFormWithFieldsBySlug(slug: string) {
+        const form = await db.query.formsTable.findFirst({
+            where: eq(formsTable.slug, slug),
+            with: { fields: true },
+        })
+
+        if (!form) throw CustomError.notFound("Form not found")
+
+        return form
+    }
     
 
 }

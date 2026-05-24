@@ -11,21 +11,20 @@ export const createFormInputModel = z.object({
 
 export const createFormOutputModel = z.object({
     id: z.string().describe('Id of the form'),
-    slug: z.string().describe("Slug of the form")
+    slug: z.string().describe('Slug of the form'),
 })
 
 export const getMyFormsOutputModel = z.array(z.object({
-    id: z.string(),
-    title: z.string(),
-    description: z.string().nullable(),
-    slug: z.string(),
-    isPublished: z.boolean().nullable(),
-    isPublic: z.boolean().nullable(),
-    isLocked: z.boolean().nullable(),
-    createdAt: z.date().nullable(),
-    expiresAt: z.coerce.date()
+    id: z.string().describe('Id of the form'),
+    title: z.string().describe('Title of the form'),
+    description: z.string().nullable().describe('Description of the form'),
+    slug: z.string().describe('Slug of the form'),
+    isPublished: z.boolean().nullable().describe('Whether the form is published'),
+    isPublic: z.boolean().nullable().describe('Whether the form is publicly discoverable'),
+    isLocked: z.boolean().nullable().describe('Whether the form is locked from new responses'),
+    createdAt: z.date().nullable().describe('Date the form was created'),
+    expiresAt: z.coerce.date().nullable().describe('Date the form expires'),
 }))
-
 
 // form field
 
@@ -57,7 +56,7 @@ export const getFormFieldsInputModel = z.object({
   formId: z.string().uuid().describe('Id of the form'),
 })
 
-export const getFormFieldsOutputModel = z.array(z.object({
+const formFieldModel = z.object({
   id: z.string().describe('Id of the field'),
   label: z.string().describe('Label shown to respondent'),
   description: z.string().nullable().describe('Helper text below the field'),
@@ -70,4 +69,25 @@ export const getFormFieldsOutputModel = z.array(z.object({
   })).nullable().describe('Options for select fields'),
   validations: z.record(z.string(), z.unknown()).nullable().describe('Validation rules for the field'),
   conditions: z.record(z.string(), z.unknown()).nullable().describe('Show/hide conditions'),
-}))
+})
+
+export const getFormFieldsOutputModel = z.array(formFieldModel)
+
+// get form by slug with fields
+
+export const getFormBySlugInputModel = z.object({
+    slug: z.string().describe('Slug of the form'),
+})
+
+export const getFormBySlugOutputModel = z.object({
+    id: z.string().describe('Id of the form'),
+    title: z.string().describe('Title of the form'),
+    description: z.string().nullable().describe('Description of the form'),
+    slug: z.string().describe('Slug of the form'),
+    isPublished: z.boolean().nullable().describe('Whether the form is published'),
+    isPublic: z.boolean().nullable().describe('Whether the form is publicly discoverable'),
+    isLocked: z.boolean().nullable().describe('Whether the form is locked from new responses'),
+    createdAt: z.date().nullable().describe('Date the form was created'),
+    expiresAt: z.coerce.date().nullable().describe('Date the form expires'),
+    fields: z.array(formFieldModel).describe('Fields belonging to this form'),
+})

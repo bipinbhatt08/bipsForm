@@ -1,10 +1,11 @@
-import { and, db, desc, eq } from '@repo/database'
+import { db, desc, eq } from '@repo/database'
 import { formFieldsTable } from '@repo/database/models/form-field'
 import { CustomError } from '../utils/errors'
 import { createFormFieldInput, CreateFormFieldInputType } from './model'
-import { formsTable } from '@repo/database/models/form'
+import FormService from '../form'
 
 class FormFieldService {
+    private formService = new FormService()
 
     private async getNextIndex(formId: string): Promise<string> {
     const last = await db
@@ -19,32 +20,11 @@ class FormFieldService {
         : '0.00'  //starts at 0.00 up to 99.00
     }
 
-    private async checkFormExistance(formId:string){
-        const formExists = await db.select().from(formsTable).where(eq(formsTable.id, formId))
-        if(formExists.length === 0) return null
-        return formExists[0]
-    }
-     private async verifyFormOwnership(formId: string, userId: string) {
-        const form = await db
-        .select({ id: formsTable.id })
-        .from(formsTable)
-        .where(
-            and(
-            eq(formsTable.id, formId),
-            eq(formsTable.createdBy, userId)  // ✅ must belong to this user
-            )
-        )
-        .limit(1)
-
-        if (!form || form.length === 0)
-        throw CustomError.forbidden("You do not have access to this form")
-    }
-
     public async createFormField(userId:string, payload: CreateFormFieldInputType) {
         const { label, description, placeholder, isRequired, type, options, validations, conditions,formId } =
             await createFormFieldInput.parseAsync(payload)
 
-        await this.verifyFormOwnership(formId, userId)
+        await this.formService.verifyFormOwnership(formId, userId)
 
         const labelKey = label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
         const index = await this.getNextIndex(formId)
@@ -62,7 +42,7 @@ class FormFieldService {
 
     public async getFormFields (formId:string){
 
-        const formExist = await this.checkFormExistance(formId)
+        const formExist = await this.formService.checkFormExistance(formId)
         if(!formExist) throw CustomError.notFound("Form not found")
 
         const result = await db.select({
