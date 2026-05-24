@@ -38,7 +38,9 @@ import {
   TableRow,
 } from "~/components/ui/table"
 import { CreateFormModal } from "~/components/create-form-modal"
+import { FormPreviewSheet } from "~/components/form-preview-sheet"
 import { useGetForms } from "~/hooks/api/form"
+import Link from "next/link"
 
 type Form = ReturnType<typeof useGetForms>["forms"][number]
 
@@ -117,11 +119,18 @@ const columns: ColumnDef<Form>[] = [
   {
     id: "actions",
     header: "",
-    cell: ({ row }) => <FormActions id={row.original.id} />,
+    cell: ({ row, table }) => (
+      <FormActions
+      slug={row?.original?.slug
+      }
+        id={row.original.id}
+        onPreview={(table.options.meta as { onPreview: (id: string) => void }).onPreview}
+      />
+    ),
   },
 ]
 
-function FormActions({ id }: { id: string }) {
+function FormActions({ id, onPreview, slug}: { id: string;slug:string; onPreview: (id: string) => void }) {
   const router = useRouter()
   return (
     <DropdownMenu>
@@ -140,9 +149,14 @@ function FormActions({ id }: { id: string }) {
           <IconEdit className="size-4" />
           Edit
         </DropdownMenuItem>
-        <DropdownMenuItem className="gap-2">
+        <DropdownMenuItem className="gap-2" onClick={() => onPreview(id)}>
           <IconEye className="size-4" />
           Preview
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="gap-2" >
+          
+          <Link href={`/forms/${slug}`} target="_blank" rel="noopener noreferrer"><IconEye className="size-4" />View Live</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" className="gap-2">
@@ -157,6 +171,7 @@ function FormActions({ id }: { id: string }) {
 export default function FormsPage() {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [sorting, setSorting] = React.useState<SortingState>([])
+  const [previewId, setPreviewId] = React.useState<string | null>(null)
   const { forms, isLoading } = useGetForms()
 
   const table = useReactTable({
@@ -166,6 +181,7 @@ export default function FormsPage() {
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    meta: { onPreview: setPreviewId },
   })
 
   return (
@@ -231,6 +247,11 @@ export default function FormsPage() {
       )}
 
       <CreateFormModal open={modalOpen} onOpenChange={setModalOpen} />
+      <FormPreviewSheet
+        formId={previewId}
+        open={previewId !== null}
+        onOpenChange={(open) => { if (!open) setPreviewId(null) }}
+      />
     </div>
   )
 }

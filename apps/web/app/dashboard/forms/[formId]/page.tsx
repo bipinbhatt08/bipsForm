@@ -9,6 +9,7 @@ import {
   IconCheckbox,
   IconChevronDown,
   IconChevronUp,
+  IconEye,
   IconHash,
   IconLetterCase,
   IconList,
@@ -36,6 +37,7 @@ import { Separator } from "~/components/ui/separator"
 import { Skeleton } from "~/components/ui/skeleton"
 import { Switch } from "~/components/ui/switch"
 import { cn } from "~/lib/utils"
+import { FormPreviewSheet } from "~/components/form-preview-sheet"
 import { useCreateFormField, useGetFormFields, useGetForms } from "~/hooks/api/form"
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -293,6 +295,13 @@ function ConfigPanel({
   const hasValidation = VALIDATION_TYPES.includes(draft.type)
   const needsValue = draft.condition?.operator !== "is_empty" && draft.condition?.operator !== "is_filled"
 
+  const conditionRef = draft.condition
+    ? otherFields.find((f) => f.id === draft.condition!.fieldId)
+    : null
+  const conditionRefOptions = conditionRef && SELECT_TYPES.includes(conditionRef.type)
+    ? conditionRef.options.filter((o) => o.label)
+    : []
+
   function setValidation(key: keyof Validation, raw: string) {
     const asNum = raw === "" ? undefined : Number(raw)
     onChange("validation", { ...draft.validation, [key]: asNum })
@@ -317,7 +326,7 @@ function ConfigPanel({
   }
 
   function setConditionField(fieldId: string) {
-    onChange("condition", { fieldId, operator: "equals", value: "" })
+    onChange("condition", { fieldId, operator: draft.condition?.operator ?? "equals", value: "" })
   }
 
   function setConditionOperator(operator: ConditionOperator) {
@@ -616,12 +625,25 @@ function ConfigPanel({
                   </Select>
 
                   {needsValue && (
-                    <Input
-                      placeholder="Enter value…"
-                      value={draft.condition.value}
-                      onChange={(e) => setConditionValue(e.target.value)}
-                      className="h-8 text-sm"
-                    />
+                    conditionRefOptions.length > 0 ? (
+                      <Select value={draft.condition.value} onValueChange={setConditionValue}>
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue placeholder="Select a value…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {conditionRefOptions.map((o) => (
+                            <SelectItem key={o.id} value={o.value}>{o.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        placeholder="Enter value…"
+                        value={draft.condition.value}
+                        onChange={(e) => setConditionValue(e.target.value)}
+                        className="h-8 text-sm"
+                      />
+                    )
                   )}
                 </div>
               </div>
@@ -687,6 +709,7 @@ export default function FormBuilderPage() {
   const [fields, setFields] = React.useState<FormField[]>([])
   const [panel, setPanel] = React.useState<PanelMode>({ kind: "idle" })
   const [draft, setDraft] = React.useState<Omit<FormField, "id">>(emptyDraft())
+  const [previewOpen, setPreviewOpen] = React.useState(false)
 
   const seededRef = React.useRef(false)
   React.useEffect(() => {
@@ -745,39 +768,38 @@ export default function FormBuilderPage() {
     })
   }
 
-  async function commitAdd() {
+  async function handleSave() {
     if (!draft.label.trim()) return
-    try {
-      const { id } = await createFormFieldAsync({
-        formId,
-        label: draft.label,
-        description: draft.description || undefined,
-        placeholder: draft.placeholder || undefined,
-        isRequired: draft.isRequired,
-        type: draft.type,
-        options: SELECT_TYPES.includes(draft.type)
-          ? draft.options.map(({ label, value }) => ({ label, value }))
-          : undefined,
-        validations:
-          Object.keys(draft.validation).length > 0
-            ? (draft.validation as Record<string, unknown>)
+    if (isAdding) {
+      try {
+        const { id } = await createFormFieldAsync({
+          formId,
+          label: draft.label,
+          description: draft.description || undefined,
+          placeholder: draft.placeholder || undefined,
+          isRequired: draft.isRequired,
+          type: draft.type,
+          options: SELECT_TYPES.includes(draft.type)
+            ? draft.options.map(({ label, value }) => ({ label, value }))
             : undefined,
-        conditions: draft.condition
-          ? (draft.condition as unknown as Record<string, unknown>)
-          : undefined,
-      })
-      setFields((prev) => [...prev, { ...draft, id }])
+          validations:
+            Object.keys(draft.validation).length > 0
+              ? (draft.validation as Record<string, unknown>)
+              : undefined,
+          conditions: draft.condition
+            ? (draft.condition as unknown as Record<string, unknown>)
+            : undefined,
+        })
+        setFields((prev) => [...prev, { ...draft, id }])
+        closePanel()
+        toast.success("Field added")
+      } catch {
+        toast.error("Failed to add field")
+      }
+    } else if (editingId) {
+      setFields((prev) => prev.map((f) => (f.id === editingId ? { ...draft, id: f.id } : f)))
       closePanel()
-      toast.success("Field added")
-    } catch {
-      toast.error("Failed to add field")
     }
-  }
-
-  function commitEdit() {
-    if (!editingId || !draft.label.trim()) return
-    setFields((prev) => prev.map((f) => (f.id === editingId ? { ...draft, id: f.id } : f)))
-    closePanel()
   }
 
   function deleteField(id: string) {
@@ -820,6 +842,16 @@ export default function FormBuilderPage() {
         <Badge variant="secondary" className="shrink-0 text-xs tabular-nums">
           {fields.length} {fields.length === 1 ? "field" : "fields"}
         </Badge>
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0 gap-1.5"
+          onClick={() => setPreviewOpen(true)}
+          disabled={fields.length === 0}
+        >
+          <IconEye className="size-3.5" />
+          Preview
+        </Button>
       </div>
 
       {/* Body */}
@@ -926,7 +958,7 @@ export default function FormBuilderPage() {
                 isNew={isAdding}
                 otherFields={otherFields}
                 onChange={updateDraft}
-                onSave={isAdding ? commitAdd : commitEdit}
+                onSave={handleSave}
                 onClose={closePanel}
                 isSaving={isSaving}
               />
@@ -934,6 +966,12 @@ export default function FormBuilderPage() {
           </div>
         </aside>
       </div>
+
+      <FormPreviewSheet
+        formId={formId}
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+      />
     </div>
   )
 }

@@ -22,14 +22,9 @@ import {
 } from "~/components/ui/select"
 import { Switch } from "~/components/ui/switch"
 import { useCreateForm } from "~/hooks/api/form"
+import { THEMES as THEME_MAP } from "~/app/forms/[slug]/themes"
 
-const THEMES = [
-  { id: "minimal", label: "Minimal" },
-  { id: "anime", label: "Anime" },
-  { id: "retro", label: "Retro" },
-  { id: "neon", label: "Neon" },
-  { id: "nature", label: "Nature" },
-]
+const THEMES = Object.entries(THEME_MAP).map(([id, { label }]) => ({ id, label }))
 
 interface CreateFormModalProps {
   open: boolean
