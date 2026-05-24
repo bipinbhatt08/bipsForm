@@ -1,8 +1,14 @@
-export default function Dashboard() {
+import { ChartAreaInteractive } from "~/components/chart-area-interactive"
+import { SectionCards } from "~/components/section-cards"
+
+export default function DashboardPage() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-      <div className="flex w-full max-w-sm flex-col gap-6" >
-            Dashboard
+    <div className="@container/main flex flex-1 flex-col gap-2">
+      <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <SectionCards />
+        <div className="px-4 lg:px-6">
+          <ChartAreaInteractive />
+        </div>
       </div>
     </div>
   )
