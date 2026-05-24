@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import { db } from '@repo/database'
+import { db, eq } from '@repo/database'
 import { formsTable } from '@repo/database/models/form'
 import { CustomError } from '../utils/errors'
 import { createFormInput, CreateFormInputType } from './model'
@@ -12,13 +12,32 @@ class FormService {
         return `${base}-${suffix}`
     }
 
+    public async getMyForms(userId: string) {
+        return db
+            .select({
+                id: formsTable.id,
+                title: formsTable.title,
+                description: formsTable.description,
+                slug: formsTable.slug,
+                isPublished: formsTable.isPublished,
+                isPublic: formsTable.isPublic,
+                isLocked: formsTable.isLocked,
+                createdAt: formsTable.createdAt,
+                expiresAt: formsTable.expiresAt
+                
+            })
+            .from(formsTable)
+            .where(eq(formsTable.createdBy, userId))
+            .orderBy(formsTable.createdAt)
+    }
+
     public async createForm(userId: string, payload: CreateFormInputType) {
-        const { title, description, themeId, responseLimit, expiresAt } = await createFormInput.parseAsync(payload)
+        const { title, description, themeId, responseLimit, expiresAt, isPublic } = await createFormInput.parseAsync(payload)
         const slug = this.generateSlug(title)
 
         const result = await db
             .insert(formsTable)
-            .values({ title, description, themeId, responseLimit, expiresAt, createdBy: userId, slug})
+            .values({ title, description, themeId, responseLimit, expiresAt, isPublic, createdBy: userId, slug})
             .returning({ id: formsTable.id, slug: formsTable.slug })
 
         if (!result || result.length === 0 || !result[0]?.id)
@@ -26,6 +45,8 @@ class FormService {
 
         return result[0]!
     }
+
+    
 
 }
 

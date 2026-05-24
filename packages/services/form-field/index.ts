@@ -19,6 +19,11 @@ class FormFieldService {
         : '0.00'  //starts at 0.00 up to 99.00
     }
 
+    private async checkFormExistance(formId:string){
+        const formExists = await db.select().from(formsTable).where(eq(formsTable.id, formId))
+        if(formExists.length === 0) return null
+        return formExists[0]
+    }
      private async verifyFormOwnership(formId: string, userId: string) {
         const form = await db
         .select({ id: formsTable.id })
@@ -53,6 +58,26 @@ class FormFieldService {
             throw CustomError.internal("Something went wrong while creating a form field")
 
         return result[0]!
+    }
+
+    public async getFormFields (formId:string){
+
+        const formExist = await this.checkFormExistance(formId)
+        if(!formExist) throw CustomError.notFound("Form not found")
+
+        const result = await db.select({
+            id:formFieldsTable.id,
+            label:formFieldsTable.label,
+            description: formFieldsTable.description,
+            placeholder: formFieldsTable.placeholder,
+            isRequired: formFieldsTable.isRequired,
+            type: formFieldsTable.type,
+            options: formFieldsTable.options,
+            validations: formFieldsTable.validations,
+            conditions:formFieldsTable.conditions
+        }).from(formFieldsTable).where(eq(formFieldsTable.formId, formId))
+
+        return result
     }
 
 }

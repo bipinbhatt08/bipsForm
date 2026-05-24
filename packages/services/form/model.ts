@@ -5,6 +5,7 @@ export const createFormInput = z.object({
     description: z.string().max(500).optional().describe('Description of the form'),
     themeId: z.string().optional().describe('Theme id of the form'),
     responseLimit: z.number().int().positive().optional().describe('Maximum number of responses allowed'),
-    expiresAt: z.coerce.date().optional().describe('Expiry date of the form')
+    expiresAt: z.coerce.date().optional().describe('Expiry date of the form'),
+    isPublic: z.boolean().optional().describe('Whether the form is publicly discoverable'),
 })
 export type CreateFormInputType = z.infer<typeof createFormInput>

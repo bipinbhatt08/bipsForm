@@ -5,13 +5,26 @@ export const createFormInputModel = z.object({
     description: z.string().max(500).optional().describe('Description of the form'),
     themeId: z.string().optional().describe('Theme id of the form'),
     responseLimit: z.number().int().positive().optional().describe('Maximum number of responses allowed'),
-    expiresAt: z.coerce.date().optional().describe('Expiry date of the form')
+    expiresAt: z.coerce.date().optional().describe('Expiry date of the form'),
+    isPublic: z.boolean().optional().describe('Whether the form is publicly discoverable'),
 })
 
 export const createFormOutputModel = z.object({
     id: z.string().describe('Id of the form'),
     slug: z.string().describe("Slug of the form")
 })
+
+export const getMyFormsOutputModel = z.array(z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string().nullable(),
+    slug: z.string(),
+    isPublished: z.boolean().nullable(),
+    isPublic: z.boolean().nullable(),
+    isLocked: z.boolean().nullable(),
+    createdAt: z.date().nullable(),
+    expiresAt: z.coerce.date()
+}))
 
 
 // form field
@@ -39,3 +52,22 @@ export const createFormFieldInputModel = z.object({
 export const createFormFieldOutputModel = z.object({
   id: z.string().describe('Id of the created field'),
 })
+
+export const getFormFieldsInputModel = z.object({
+  formId: z.string().uuid().describe('Id of the form'),
+})
+
+export const getFormFieldsOutputModel = z.array(z.object({
+  id: z.string().describe('Id of the field'),
+  label: z.string().describe('Label shown to respondent'),
+  description: z.string().nullable().describe('Helper text below the field'),
+  placeholder: z.string().nullable().describe('Placeholder text for input'),
+  isRequired: z.boolean().describe('Whether the field is required'),
+  type: fieldTypeEnum.describe('Type of the field'),
+  options: z.array(z.object({
+    label: z.string().describe('Display label for the option'),
+    value: z.string().describe('Value stored on submit'),
+  })).nullable().describe('Options for select fields'),
+  validations: z.record(z.string(), z.unknown()).nullable().describe('Validation rules for the field'),
+  conditions: z.record(z.string(), z.unknown()).nullable().describe('Show/hide conditions'),
+}))
