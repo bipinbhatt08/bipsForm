@@ -19,6 +19,7 @@ export const getMyFormsOutputModel = z.array(z.object({
     title: z.string().describe('Title of the form'),
     description: z.string().nullable().describe('Description of the form'),
     slug: z.string().describe('Slug of the form'),
+    themeId: z.string().nullable().describe('Theme key for the form'),
     isPublished: z.boolean().nullable().describe('Whether the form is published'),
     isPublic: z.boolean().nullable().describe('Whether the form is publicly discoverable'),
     isLocked: z.boolean().nullable().describe('Whether the form is locked from new responses'),

@@ -28,8 +28,9 @@ class FormService {
                 isPublic: formsTable.isPublic,
                 isLocked: formsTable.isLocked,
                 createdAt: formsTable.createdAt,
-                expiresAt: formsTable.expiresAt
-                
+                expiresAt: formsTable.expiresAt,
+                themeId: formsTable.themeId,
+
             })
             .from(formsTable)
             .where(eq(formsTable.createdBy, userId))
