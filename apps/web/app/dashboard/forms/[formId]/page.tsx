@@ -9,6 +9,7 @@ import {
   IconCheckbox,
   IconChevronDown,
   IconChevronUp,
+  IconClipboardList,
   IconEye,
   IconHash,
   IconLetterCase,
@@ -842,6 +843,15 @@ export default function FormBuilderPage() {
         <Badge variant="secondary" className="shrink-0 text-xs tabular-nums">
           {fields.length} {fields.length === 1 ? "field" : "fields"}
         </Badge>
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0 gap-1.5"
+          onClick={() => router.push(`/dashboard/forms/${formId}/submissions`)}
+        >
+          <IconClipboardList className="size-3.5" />
+          Responses
+        </Button>
         <Button
           variant="outline"
           size="sm"

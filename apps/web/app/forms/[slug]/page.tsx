@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group"
 import { Textarea } from "~/components/ui/textarea"
 import { cn } from "~/lib/utils"
 import { useGetFormBySlug } from "~/hooks/api/form"
+import { useSubmitForm } from "~/hooks/api/submission"
 import { THEMES, DEFAULT_THEME_KEY, themeToVars, type FormTheme } from "./themes"
 
 // ─── Types derived from the API ───────────────────────────────────────────────
@@ -234,10 +235,11 @@ export default function PublicFormPage() {
   const theme = THEMES[themeKey]!.theme
   const themeVars = themeToVars(theme)
 
+  const { submitFormAsync, isPending: isSubmitting } = useSubmitForm()
+
   const [values, setValues] = React.useState<FieldValues>({})
   const [errors, setErrors] = React.useState<FieldErrors>({})
   const [submitted, setSubmitted] = React.useState(false)
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   function setFieldValue(fieldId: string, value: unknown) {
     setValues((prev) => ({ ...prev, [fieldId]: value }))
@@ -271,17 +273,15 @@ export default function PublicFormPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!validate()) {
+    if (!form || !validate()) {
       toast.error("Please fill in all required fields")
       return
     }
-    setIsSubmitting(true)
     try {
-      // TODO: replace with submitForm mutation once backend endpoint is ready
-      await new Promise((r) => setTimeout(r, 600))
+      await submitFormAsync({ formId: form.id, values })
       setSubmitted(true)
-    } finally {
-      setIsSubmitting(false)
+    } catch {
+      toast.error("Failed to submit. Please try again.")
     }
   }
 

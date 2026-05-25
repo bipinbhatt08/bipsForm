@@ -3,6 +3,7 @@
 import * as React from "react"
 import {
   IconCirclePlusFilled,
+  IconClipboardList,
   IconDotsVertical,
   IconEdit,
   IconEye,
@@ -144,7 +145,7 @@ function FormActions({ id, onPreview, slug}: { id: string;slug:string; onPreview
           <span className="sr-only">Actions</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
+      <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem className="gap-2" onClick={() => router.push(`/dashboard/forms/${id}`)}>
           <IconEdit className="size-4" />
           Edit
@@ -153,10 +154,16 @@ function FormActions({ id, onPreview, slug}: { id: string;slug:string; onPreview
           <IconEye className="size-4" />
           Preview
         </DropdownMenuItem>
+        <DropdownMenuItem className="gap-2" onClick={() => router.push(`/dashboard/forms/${id}/submissions`)}>
+          <IconClipboardList className="size-4" />
+          View Responses
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="gap-2" >
-          
-          <Link href={`/forms/${slug}`} target="_blank" rel="noopener noreferrer"><IconEye className="size-4" />View Live</Link>
+          <Link href={`/forms/${slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-full">
+            <IconEye className="size-4" />
+            View Live
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" className="gap-2">
