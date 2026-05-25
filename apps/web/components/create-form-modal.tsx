@@ -23,6 +23,7 @@ import {
 import { Switch } from "~/components/ui/switch"
 import { useCreateForm } from "~/hooks/api/form"
 import { THEMES as THEME_MAP } from "~/app/forms/[slug]/themes"
+import { trpc } from "~/trpc/client"
 
 const THEMES = Object.entries(THEME_MAP).map(([id, { label }]) => ({ id, label }))
 
@@ -33,6 +34,7 @@ interface CreateFormModalProps {
 
 export function CreateFormModal({ open, onOpenChange }: CreateFormModalProps) {
   const router = useRouter()
+  const utils = trpc.useUtils()
   const [title, setTitle] = React.useState("")
   const [description, setDescription] = React.useState("")
   const [themeId, setThemeId] = React.useState<string | undefined>(undefined)
@@ -55,13 +57,37 @@ export function CreateFormModal({ open, onOpenChange }: CreateFormModalProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
-    const { id } = await createFormAsync({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      themeId: themeId ?? undefined,
+    const resolvedTitle = title.trim()
+    const resolvedDescription = description.trim() || undefined
+    const resolvedThemeId = themeId ?? undefined
+    const resolvedExpiresAt = expiresAt ? new Date(expiresAt) : undefined
+    const { id, slug } = await createFormAsync({
+      title: resolvedTitle,
+      description: resolvedDescription,
+      themeId: resolvedThemeId,
       responseLimit: responseLimit ? parseInt(responseLimit, 10) : undefined,
-      expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+      expiresAt: resolvedExpiresAt,
       isPublic,
+    })
+    // Immediately inject the new form into the cache so the form builder
+    // sees the correct themeId before the background refetch completes.
+    utils.form.getMyForms.setData(undefined, (old) => {
+      if (!old) return old
+      return [
+        ...old,
+        {
+          id,
+          slug,
+          title: resolvedTitle,
+          description: resolvedDescription ?? null,
+          themeId: resolvedThemeId ?? "minimal",
+          isPublished: false,
+          isPublic,
+          isLocked: false,
+          createdAt: new Date().toISOString() as unknown as string,
+          expiresAt: resolvedExpiresAt ? resolvedExpiresAt.toISOString() as unknown as string : null,
+        },
+      ]
     })
     resetForm()
     onOpenChange(false)

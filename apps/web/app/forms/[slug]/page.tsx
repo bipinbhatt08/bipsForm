@@ -230,14 +230,7 @@ export default function PublicFormPage() {
 
   const { form, isLoading, isError } = useGetFormBySlug(slug)
 
-  const [themeKey, setThemeKey] = React.useState(DEFAULT_THEME_KEY)
-
-  React.useEffect(() => {
-    if (form?.themeId && THEMES[form.themeId]) {
-      setThemeKey(form.themeId)
-    }
-  }, [form?.themeId])
-
+  const themeKey = (form?.themeId && THEMES[form.themeId]) ? form.themeId : DEFAULT_THEME_KEY
   const theme = THEMES[themeKey]!.theme
   const themeVars = themeToVars(theme)
 
