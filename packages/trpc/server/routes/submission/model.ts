@@ -18,3 +18,12 @@ export const getFormSubmissionsOutputModel = z.array(z.object({
     values: z.unknown().describe('Submitted values'),
     createdAt: z.date().nullable().describe('Submission timestamp'),
 }))
+
+export const getFormAnalyticsInputModel = z.object({
+    formId: z.string().uuid().describe('ID of the form'),
+})
+
+export const getFormAnalyticsOutputModel = z.object({
+    totalSubmissions: z.number(),
+    dailySubmissions: z.array(z.object({ date: z.string(), count: z.number() })),
+})
