@@ -1,7 +1,7 @@
 import { db, desc, eq } from '@repo/database'
 import { formFieldsTable } from '@repo/database/models/form-field'
 import { CustomError } from '../utils/errors'
-import { createFormFieldInput, CreateFormFieldInputType } from './model'
+import { createFormFieldInput, CreateFormFieldInputType, updateFormFieldInput, UpdateFormFieldInputType, reorderFieldsInput, ReorderFieldsInputType } from './model'
 import FormService from '../form'
 
 class FormFieldService {
@@ -58,6 +58,38 @@ class FormFieldService {
         }).from(formFieldsTable).where(eq(formFieldsTable.formId, formId))
 
         return result
+    }
+
+    public async updateFormField(userId: string, payload: UpdateFormFieldInputType) {
+        const { fieldId, formId, ...rest } = await updateFormFieldInput.parseAsync(payload)
+        await this.formService.verifyFormOwnership(formId, userId)
+
+        const field = await db.select({ id: formFieldsTable.id })
+            .from(formFieldsTable)
+            .where(eq(formFieldsTable.id, fieldId))
+            .limit(1)
+
+        if (!field || field.length === 0) throw CustomError.notFound("Field not found")
+
+        await db.update(formFieldsTable).set(rest).where(eq(formFieldsTable.id, fieldId))
+    }
+
+    public async deleteFormField(userId: string, fieldId: string, formId: string) {
+        await this.formService.verifyFormOwnership(formId, userId)
+        await db.delete(formFieldsTable).where(eq(formFieldsTable.id, fieldId))
+    }
+
+    public async reorderFields(userId: string, payload: ReorderFieldsInputType) {
+        const { formId, fields } = await reorderFieldsInput.parseAsync(payload)
+        await this.formService.verifyFormOwnership(formId, userId)
+
+        await db.transaction(async (tx) => {
+            for (const { id, index } of fields) {
+                await tx.update(formFieldsTable)
+                    .set({ index })
+                    .where(eq(formFieldsTable.id, id))
+            }
+        })
     }
 
 }

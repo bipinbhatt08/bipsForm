@@ -10,6 +10,9 @@ import {
     updateFormInputModel, updateFormOutputModel,
     deleteFormInputModel, deleteFormOutputModel,
     getFormByIdInputModel, getFormByIdOutputModel,
+    updateFormFieldInputModel, updateFormFieldOutputModel,
+    deleteFormFieldInputModel, deleteFormFieldOutputModel,
+    reorderFieldsInputModel, reorderFieldsOutputModel,
 } from "./model";
 import { formService,formfieldService } from "../../services";
 
@@ -121,6 +124,33 @@ export const formRouter = router({
     .output(deleteFormOutputModel)
     .mutation(async({ input, ctx }) => {
         await formService.deleteForm(input.formId, ctx.user.id)
+        return { success: true }
+    }),
+
+    updateFormField: authenticatedProcedure
+    .meta({ openapi:{ method:"PATCH", path:getPath("/updateFormField"), tags:TAGS } })
+    .input(updateFormFieldInputModel)
+    .output(updateFormFieldOutputModel)
+    .mutation(async({ input, ctx }) => {
+        await formfieldService.updateFormField(ctx.user.id, input)
+        return { success: true }
+    }),
+
+    deleteFormField: authenticatedProcedure
+    .meta({ openapi:{ method:"DELETE", path:getPath("/deleteFormField"), tags:TAGS } })
+    .input(deleteFormFieldInputModel)
+    .output(deleteFormFieldOutputModel)
+    .mutation(async({ input, ctx }) => {
+        await formfieldService.deleteFormField(ctx.user.id, input.fieldId, input.formId)
+        return { success: true }
+    }),
+
+    reorderFields: authenticatedProcedure
+    .meta({ openapi:{ method:"POST", path:getPath("/reorderFields"), tags:TAGS } })
+    .input(reorderFieldsInputModel)
+    .output(reorderFieldsOutputModel)
+    .mutation(async({ input, ctx }) => {
+        await formfieldService.reorderFields(ctx.user.id, input)
         return { success: true }
     }),
 })

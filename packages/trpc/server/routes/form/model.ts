@@ -74,6 +74,40 @@ const formFieldModel = z.object({
 
 export const getFormFieldsOutputModel = z.array(formFieldModel)
 
+// update form field
+
+export const updateFormFieldInputModel = z.object({
+  fieldId: z.string().uuid().describe('Id of the field'),
+  formId: z.string().uuid().describe('Id of the form'),
+  label: z.string().min(1).max(100).optional(),
+  description: z.string().nullable().optional(),
+  placeholder: z.string().nullable().optional(),
+  isRequired: z.boolean().optional(),
+  options: z.array(z.object({ label: z.string(), value: z.string() })).nullable().optional(),
+  validations: z.record(z.string(), z.unknown()).nullable().optional(),
+  conditions: z.record(z.string(), z.unknown()).nullable().optional(),
+})
+export const updateFormFieldOutputModel = z.object({ success: z.boolean() })
+
+// delete form field
+
+export const deleteFormFieldInputModel = z.object({
+  fieldId: z.string().uuid().describe('Id of the field'),
+  formId: z.string().uuid().describe('Id of the form'),
+})
+export const deleteFormFieldOutputModel = z.object({ success: z.boolean() })
+
+// reorder fields
+
+export const reorderFieldsInputModel = z.object({
+  formId: z.string().uuid().describe('Id of the form'),
+  fields: z.array(z.object({
+    id: z.string().uuid(),
+    index: z.string(),
+  })),
+})
+export const reorderFieldsOutputModel = z.object({ success: z.boolean() })
+
 // get public forms (explore page)
 
 export const getPublicFormsOutputModel = z.array(z.object({

@@ -21,3 +21,28 @@ export const createFormFieldInput = z.object({
 })
 
 export type CreateFormFieldInputType = z.infer<typeof createFormFieldInput>
+
+export const updateFormFieldInput = z.object({
+  fieldId: z.string().uuid(),
+  formId: z.string().uuid(),
+  label: z.string().min(1).max(100).optional(),
+  description: z.string().nullable().optional(),
+  placeholder: z.string().nullable().optional(),
+  isRequired: z.boolean().optional(),
+  options: z.array(z.object({
+    label: z.string(),
+    value: z.string(),
+  })).nullable().optional(),
+  validations: z.record(z.string(), z.unknown()).nullable().optional(),
+  conditions: z.record(z.string(), z.unknown()).nullable().optional(),
+})
+export type UpdateFormFieldInputType = z.infer<typeof updateFormFieldInput>
+
+export const reorderFieldsInput = z.object({
+  formId: z.string().uuid(),
+  fields: z.array(z.object({
+    id: z.string().uuid(),
+    index: z.string(),
+  })),
+})
+export type ReorderFieldsInputType = z.infer<typeof reorderFieldsInput>
