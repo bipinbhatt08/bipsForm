@@ -74,6 +74,58 @@ const formFieldModel = z.object({
 
 export const getFormFieldsOutputModel = z.array(formFieldModel)
 
+// get public forms (explore page)
+
+export const getPublicFormsOutputModel = z.array(z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string().nullable(),
+    slug: z.string(),
+    themeId: z.string().nullable(),
+    createdAt: z.date().nullable(),
+}))
+
+// update form (covers title, description, theme, publish toggle, etc.)
+
+export const updateFormInputModel = z.object({
+    formId: z.string().uuid().describe('Id of the form'),
+    title: z.string().min(1).max(55).optional().describe('Title of the form'),
+    description: z.string().max(500).nullable().optional().describe('Description of the form'),
+    themeId: z.string().nullable().optional().describe('Theme id'),
+    responseLimit: z.number().int().positive().nullable().optional(),
+    expiresAt: z.coerce.date().nullable().optional(),
+    isPublic: z.boolean().optional(),
+    isPublished: z.boolean().optional(),
+})
+export const updateFormOutputModel = z.object({ success: z.boolean() })
+
+// delete form
+
+export const deleteFormInputModel = z.object({
+    formId: z.string().uuid().describe('Id of the form'),
+})
+export const deleteFormOutputModel = z.object({ success: z.boolean() })
+
+// get form by id
+
+export const getFormByIdInputModel = z.object({
+    formId: z.string().uuid().describe('Id of the form'),
+})
+
+export const getFormByIdOutputModel = z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string().nullable(),
+    slug: z.string(),
+    themeId: z.string().nullable(),
+    isPublished: z.boolean().nullable(),
+    isPublic: z.boolean().nullable(),
+    isLocked: z.boolean().nullable(),
+    createdAt: z.date().nullable(),
+    expiresAt: z.coerce.date().nullable(),
+    responseLimit: z.number().nullable(),
+})
+
 // get form by slug with fields
 
 export const getFormBySlugInputModel = z.object({
