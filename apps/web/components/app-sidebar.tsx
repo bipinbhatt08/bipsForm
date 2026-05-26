@@ -6,14 +6,15 @@ import {
   IconDashboard,
   IconFileDescription,
   IconHelp,
-  IconInnerShadowTop,
   IconSearch,
   IconSettings,
 } from "@tabler/icons-react"
+import Link from "next/link"
 
 import { NavMain } from "~/components/nav-main"
 import { NavSecondary } from "~/components/nav-secondary"
 import { NavUser } from "~/components/nav-user"
+import { LogoMark, BipsFormWordmark } from "~/components/brand"
 import {
   Sidebar,
   SidebarContent,
@@ -72,14 +73,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
-            >
-              <a href="#">
-                <IconInnerShadowTop className="size-5!" />
-                <span className="text-base font-semibold">Acme Inc.</span>
-              </a>
+            <SidebarMenuButton asChild size="lg" className="hover:bg-sidebar-accent/50">
+              <Link href="/dashboard" className="flex items-center gap-2.5">
+                <LogoMark size={26} />
+                <BipsFormWordmark size={14} />
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
