@@ -6,7 +6,6 @@ import {
   IconDashboard,
   IconExternalLink,
   IconFileDescription,
-  IconSettings,
 } from "@tabler/icons-react"
 import Link from "next/link"
 
@@ -32,7 +31,6 @@ const navMain = [
 
 const navSecondary = [
   { title: "Explore", url: "/explore", icon: IconCompass },
-  { title: "Settings", url: "#", icon: IconSettings },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
