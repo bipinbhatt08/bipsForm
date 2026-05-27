@@ -183,6 +183,14 @@ function FormActions({ id, slug, onPreview, onDelete }: { id: string; slug: stri
 }
 
 export default function FormsPage() {
+  return (
+    <React.Suspense>
+      <FormsPageInner />
+    </React.Suspense>
+  )
+}
+
+function FormsPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [modalOpen, setModalOpen] = React.useState(false)
