@@ -1,8 +1,9 @@
 import { randomBytes } from 'node:crypto'
-import { and, db, eq } from '@repo/database'
+import { and, count, db, eq } from '@repo/database'
 import { formsTable } from '@repo/database/models/form'
 import { formFieldsTable } from '@repo/database/models/form-field'
 import { submissionTable } from '@repo/database/models/form-submission'
+import { usersTable } from '@repo/database/models/user'
 import { CustomError } from '../utils/errors'
 import { createFormInput, CreateFormInputType, updateFormInput, UpdateFormInputType } from './model'
 
@@ -107,9 +108,15 @@ class FormService {
                 slug: formsTable.slug,
                 themeId: formsTable.themeId,
                 createdAt: formsTable.createdAt,
+                expiresAt: formsTable.expiresAt,
+                creatorName: usersTable.fullName,
+                fieldCount: count(formFieldsTable.id),
             })
             .from(formsTable)
+            .leftJoin(usersTable, eq(formsTable.createdBy, usersTable.id))
+            .leftJoin(formFieldsTable, eq(formFieldsTable.formId, formsTable.id))
             .where(and(eq(formsTable.isPublished, true), eq(formsTable.isPublic, true)))
+            .groupBy(formsTable.id, usersTable.fullName)
             .orderBy(formsTable.createdAt)
     }
 

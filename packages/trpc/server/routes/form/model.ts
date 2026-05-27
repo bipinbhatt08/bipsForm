@@ -117,6 +117,9 @@ export const getPublicFormsOutputModel = z.array(z.object({
     slug: z.string(),
     themeId: z.string().nullable(),
     createdAt: z.date().nullable(),
+    expiresAt: z.date().nullable(),
+    creatorName: z.string().nullable(),
+    fieldCount: z.number(),
 }))
 
 // update form (covers title, description, theme, publish toggle, etc.)
