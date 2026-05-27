@@ -102,6 +102,8 @@ function SubmissionDetailSheet({
   fields,
   index,
   total,
+  isFirst,
+  isLast,
   open,
   onOpenChange,
   onPrev,
@@ -111,6 +113,8 @@ function SubmissionDetailSheet({
   fields: Field[]
   index: number
   total: number
+  isFirst: boolean
+  isLast: boolean
   open: boolean
   onOpenChange: (open: boolean) => void
   onPrev: () => void
@@ -131,11 +135,11 @@ function SubmissionDetailSheet({
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              <Button variant="ghost" size="icon" className="size-7" onClick={onPrev} disabled={index >= total}>
+              <Button variant="ghost" size="icon" className="size-7" onClick={onPrev} disabled={isFirst}>
                 <IconChevronLeft className="size-4" />
               </Button>
               <span className="text-xs text-muted-foreground tabular-nums w-12 text-center">{index} / {total}</span>
-              <Button variant="ghost" size="icon" className="size-7" onClick={onNext} disabled={index <= 1}>
+              <Button variant="ghost" size="icon" className="size-7" onClick={onNext} disabled={isLast}>
                 <IconChevronRight className="size-4" />
               </Button>
             </div>
@@ -156,7 +160,7 @@ function SubmissionDetailSheet({
   )
 }
 
-const PAGE_SIZE_OPTIONS = ["10", "25", "50", "100"]
+const PAGE_SIZE_OPTIONS = ["10", "25", "50"]
 
 export default function SubmissionsPage() {
   const params = useParams()
@@ -189,23 +193,26 @@ export default function SubmissionsPage() {
     return sortDir === "desc" ? total - globalIdx : globalIdx + 1
   }, [selectedIdx, page, pageSize, sortDir, total])
 
-  function handlePrev() {
-    if (selectedIdx === null) return
-    if (selectedIdx < submissions.length - 1) {
-      setSelectedIdx(selectedIdx + 1)
-    } else if (page < totalPages) {
-      setPage(p => p + 1)
-      setSelectedIdx(0)
-    }
-  }
+  const isFirstItem = selectedIdx === 0 && page === 1
+  const isLastItem = selectedIdx === submissions.length - 1 && page >= totalPages
 
-  function handleNext() {
+  function handlePrev() {
     if (selectedIdx === null) return
     if (selectedIdx > 0) {
       setSelectedIdx(selectedIdx - 1)
     } else if (page > 1) {
       setPage(p => p - 1)
       setSelectedIdx(pageSize - 1)
+    }
+  }
+
+  function handleNext() {
+    if (selectedIdx === null) return
+    if (selectedIdx < submissions.length - 1) {
+      setSelectedIdx(selectedIdx + 1)
+    } else if (page < totalPages) {
+      setPage(p => p + 1)
+      setSelectedIdx(0)
     }
   }
 
@@ -325,9 +332,7 @@ export default function SubmissionsPage() {
                   {submissions.map((submission, idx) => {
                     const vals = (submission.values ?? {}) as Record<string, unknown>
                     const isSelected = selectedIdx === idx
-                    const rowNumber = sortDir === "desc"
-                      ? total - (page - 1) * pageSize - idx
-                      : (page - 1) * pageSize + idx + 1
+                    const rowNumber = (page - 1) * pageSize + idx + 1
                     return (
                       <TableRow
                         key={submission.id}
@@ -388,6 +393,8 @@ export default function SubmissionsPage() {
         fields={fields as Field[]}
         index={selectedDisplayIndex}
         total={total}
+        isFirst={isFirstItem}
+        isLast={isLastItem}
         open={selectedIdx !== null}
         onOpenChange={(open) => { if (!open) setSelectedIdx(null) }}
         onPrev={handlePrev}
