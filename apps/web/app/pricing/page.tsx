@@ -15,51 +15,8 @@ import { useState } from "react"
 import { Button } from "~/components/ui/button"
 import { Badge } from "~/components/ui/badge"
 import { useUser } from "~/hooks/api/auth"
-import { LogoMark, BipsFormWordmark } from "~/components/brand"
-import { ThemeToggle } from "~/components/theme-toggle"
-
-// ── Navbar ─────────────────────────────────────────────────────────────────────
-
-function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
-  return (
-    <header className="fixed top-0 inset-x-0 z-50 border-b border-border/40 bg-background/70 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 sm:px-8">
-        <Link href="/" className="flex items-center gap-2.5">
-          <LogoMark size={28} />
-          <BipsFormWordmark size={15} />
-        </Link>
-        <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-          <Link href="/#features" className="hover:text-foreground transition-colors duration-150">Features</Link>
-          <Link href="/#how-it-works" className="hover:text-foreground transition-colors duration-150">How it works</Link>
-          <Link href="/pricing" className="text-foreground font-medium">Pricing</Link>
-        </nav>
-        <div className="flex items-center gap-1.5">
-          <ThemeToggle />
-          {isLoggedIn ? (
-            <Button asChild size="sm" className="gap-1.5 font-medium shadow-lg shadow-primary/20">
-              <Link href="/dashboard">
-                <IconLayoutDashboard className="size-3.5" />
-                Dashboard
-              </Link>
-            </Button>
-          ) : (
-            <>
-              <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex text-muted-foreground hover:text-foreground">
-                <Link href="/login">Log in</Link>
-              </Button>
-              <Button asChild size="sm" className="gap-1.5 font-medium shadow-lg shadow-primary/25 bg-primary hover:bg-primary/90">
-                <Link href="/signup">
-                  Get started
-                  <IconArrowRight className="size-3.5" />
-                </Link>
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
-  )
-}
+import { LogoMark } from "~/components/brand"
+import { PublicNavbar } from "~/components/public-navbar"
 
 // ── Plans ──────────────────────────────────────────────────────────────────────
 
@@ -217,7 +174,7 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      <Navbar isLoggedIn={isLoggedIn} />
+      <PublicNavbar isLoggedIn={isLoggedIn} activePage="pricing" />
 
       <main className="pt-24">
 

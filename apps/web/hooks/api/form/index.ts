@@ -91,10 +91,21 @@ export const useGetFormFields = (formId: string) => {
     }
 }
 
+export const useGetPublicForms = () => {
+    const { data, error, isLoading, isError, isSuccess } = trpc.form.getPublicForms.useQuery()
+    return {
+        forms: data ?? [],
+        error,
+        isLoading,
+        isError,
+        isSuccess,
+    }
+}
+
 export const useGetFormBySlug = (slug: string) => {
     const { data, error, isLoading, isError, isSuccess } = trpc.form.getFormBySlug.useQuery(
         { slug },
-        { enabled: !!slug }//It tells tRPC / React Query “ONLY run this API call if slug exists”
+        { enabled: !!slug }
     )
     return {
         form: data ?? null,
@@ -104,3 +115,4 @@ export const useGetFormBySlug = (slug: string) => {
         isSuccess,
     }
 }
+
