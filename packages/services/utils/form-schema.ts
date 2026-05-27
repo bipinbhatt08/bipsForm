@@ -1,5 +1,11 @@
 import { z } from "zod"
 
+type FieldCondition = {
+  fieldId: string
+  operator: "equals" | "not_equals" | "contains" | "is_empty" | "is_filled"
+  value: string
+}
+
 export type Field = {
   id: string
   label: string
@@ -33,6 +39,21 @@ export type Field = {
     minDate?: string
     maxDate?: string
   } | null
+
+  conditions?: FieldCondition | null
+}
+
+function evaluateCondition(condition: FieldCondition, values: Record<string, unknown>): boolean {
+  const actualValue = values[condition.fieldId]
+  const str = Array.isArray(actualValue) ? actualValue.join(",") : String(actualValue ?? "")
+  switch (condition.operator) {
+    case "equals":     return str === condition.value
+    case "not_equals": return str !== condition.value
+    case "contains":   return str.includes(condition.value)
+    case "is_filled":  return str.trim() !== ""
+    case "is_empty":   return str.trim() === ""
+    default:           return true
+  }
 }
 
  function generateFieldSchema(field: Field) {
@@ -200,11 +221,12 @@ export type Field = {
   return schema
 }
 
-export  default function generateFormSchema(fields: Field[]) {
+export default function generateFormSchema(fields: Field[], submittedValues: Record<string, unknown> = {}) {
   const shape: Record<string, z.ZodTypeAny> = {}
 
   for (const field of fields) {
-    shape[field.id] = generateFieldSchema(field)
+    const conditionMet = !field.conditions || evaluateCondition(field.conditions, submittedValues)
+    shape[field.id] = generateFieldSchema({ ...field, isRequired: field.isRequired && conditionMet })
   }
 
   return z.object(shape)

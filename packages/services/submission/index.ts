@@ -28,7 +28,7 @@ class SubmissionService {
         const formWithFields = await this.formService.getFormWithFieldsBySlug(formExist.slug)
         const { fields } = formWithFields
 
-        const schema = generateFormSchema(fields as unknown as Field[])
+        const schema = generateFormSchema(fields as unknown as Field[], payload)
 
         const result = schema.safeParse(payload)
         if (!result.success) throw CustomError.badRequest(result.error.issues[0]?.message ?? "Invalid form data")
