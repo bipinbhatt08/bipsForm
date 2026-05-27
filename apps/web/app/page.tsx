@@ -35,7 +35,7 @@ function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
         <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
           <a href="#features" className="hover:text-foreground transition-colors duration-150">Features</a>
           <a href="#how-it-works" className="hover:text-foreground transition-colors duration-150">How it works</a>
-          <a href="#pricing" className="hover:text-foreground transition-colors duration-150">Pricing</a>
+          <Link href="/pricing" className="hover:text-foreground transition-colors duration-150">Pricing</Link>
         </nav>
 
         <div className="flex items-center gap-1.5">
