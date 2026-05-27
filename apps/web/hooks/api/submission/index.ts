@@ -20,6 +20,21 @@ export const useSubmitForm = () => {
     }
 }
 
+export const useGetFormAnalytics = (formId: string) => {
+    const { data, error, isLoading, isError, isSuccess } =
+        trpc.submission.getFormAnalytics.useQuery(
+            { formId },
+            { enabled: !!formId }
+        )
+    return {
+        analytics: data ?? null,
+        error,
+        isLoading,
+        isError,
+        isSuccess,
+    }
+}
+
 export const useGetFormSubmissions = (formId: string) => {
     const { data, error, isLoading, isError, isSuccess, refetch } =
         trpc.submission.getFormSubmissions.useQuery(

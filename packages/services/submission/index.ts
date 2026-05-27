@@ -1,4 +1,4 @@
-import { count, db, desc, eq, sql, and, gte } from "@repo/database"
+import { count, db, desc, eq, sql } from "@repo/database"
 import { submissionTable } from "@repo/database/models/form-submission"
 import FormService from "../form"
 import { CustomError } from "../utils/errors"
@@ -46,9 +46,6 @@ class SubmissionService {
     public async getFormAnalytics(formId: string, userId: string) {
         await this.formService.verifyFormOwnership(formId, userId)
 
-        const thirtyDaysAgo = new Date()
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
         const [totalResult, dailyResult] = await Promise.all([
             db.select({ total: count() }).from(submissionTable).where(eq(submissionTable.formId, formId)),
 
@@ -57,7 +54,7 @@ class SubmissionService {
                 count: count(),
             })
             .from(submissionTable)
-            .where(and(eq(submissionTable.formId, formId), gte(submissionTable.createdAt, thirtyDaysAgo)))
+            .where(eq(submissionTable.formId, formId))
             .groupBy(sql`DATE(${submissionTable.createdAt})`)
             .orderBy(sql`DATE(${submissionTable.createdAt})`),
         ])

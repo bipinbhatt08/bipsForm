@@ -3,6 +3,7 @@
 import * as React from "react"
 import {
   IconCirclePlusFilled,
+  IconChartBar,
   IconClipboardList,
   IconDotsVertical,
   IconEdit,
@@ -162,6 +163,9 @@ function FormActions({ id, slug, onPreview, onDelete }: { id: string; slug: stri
         </DropdownMenuItem>
         <DropdownMenuItem className="gap-2" onClick={() => router.push(`/dashboard/forms/${id}/submissions`)}>
           <IconClipboardList className="size-4" />View Responses
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-2" onClick={() => router.push(`/dashboard/forms/${id}/analytics`)}>
+          <IconChartBar className="size-4" />Analytics
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="gap-2" asChild>

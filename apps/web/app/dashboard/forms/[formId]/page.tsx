@@ -9,6 +9,7 @@ import {
   IconCheckbox,
   IconChevronDown,
   IconChevronUp,
+  IconChartBar,
   IconClipboardList,
   IconEye,
   IconHash,
@@ -941,6 +942,10 @@ export default function FormBuilderPage() {
           <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={() => router.push(`/dashboard/forms/${formId}/submissions`)}>
             <IconClipboardList className="size-3.5" />
             Responses
+          </Button>
+          <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={() => router.push(`/dashboard/forms/${formId}/analytics`)}>
+            <IconChartBar className="size-3.5" />
+            Analytics
           </Button>
           <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={() => setPreviewOpen(true)} disabled={fields.length === 0}>
             <IconEye className="size-3.5" />
