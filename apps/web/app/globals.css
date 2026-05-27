@@ -172,6 +172,9 @@
     @apply bg-background text-foreground;
     overflow-x: hidden;
   }
+  button, [role="button"], [role="menuitem"], [role="option"], [role="tab"], a {
+    cursor: pointer;
+  }
 }
 
 @keyframes marquee {
