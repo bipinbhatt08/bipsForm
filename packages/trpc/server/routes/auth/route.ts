@@ -1,10 +1,10 @@
 import { CustomError } from "@repo/services/utils/errors";
 import { userService } from "../../services";
 import { authenticatedProcedure, publicProcedure, router } from "../../trpc";
-import { getAuthenticationCookie, setAuthenticationCookie } from "../../utils/cookie";
+import { clearAuthenticationCookie, getAuthenticationCookie, setAuthenticationCookie } from "../../utils/cookie";
 import { generatePath } from "../../utils/path-generator";
 
-import {  createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswordOutputModel, getLoggedInUserInfoInputModel, getLoggedInUserInfoOutputModel, signInUserWithEmailAndPasswordInputModel, signInUserWithEmailAndPasswordOutputModel } from "./model";
+import {  createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswordOutputModel, getLoggedInUserInfoInputModel, getLoggedInUserInfoOutputModel, logoutInputModel, logoutOutputModel, signInUserWithEmailAndPasswordInputModel, signInUserWithEmailAndPasswordOutputModel } from "./model";
 
 const TAGS = ["Authentication"];
 const getPath = generatePath("/authentication");
@@ -56,6 +56,21 @@ export const authRouer = router({
 
     }),
     
+    logout: authenticatedProcedure
+    .meta({
+     openapi:{
+      method:"POST",
+      path:getPath("/logout"),
+      tags:TAGS
+     }
+    })
+    .input(logoutInputModel)
+    .output(logoutOutputModel)
+    .mutation(async({ctx})=>{
+      clearAuthenticationCookie(ctx)
+      return { success: true }
+    }),
+
     getLoggedInUserInfo: authenticatedProcedure
     .meta({
      openapi:{

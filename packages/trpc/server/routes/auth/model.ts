@@ -27,3 +27,6 @@ export const getLoggedInUserInfoOutputModel = z.object({
     email : z.email().describe("Email of the user")
 })
 
+export const logoutInputModel = z.object({})
+export const logoutOutputModel = z.object({ success: z.boolean() })
+
