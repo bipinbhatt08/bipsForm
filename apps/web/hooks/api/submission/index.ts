@@ -20,6 +20,15 @@ export const useSubmitForm = () => {
     }
 }
 
+export const useGetPublicStats = () => {
+    const { data, isLoading } = trpc.submission.getPublicStats.useQuery(undefined)
+    return {
+        totalForms: data?.totalForms ?? null,
+        totalResponses: data?.totalResponses ?? null,
+        isLoading,
+    }
+}
+
 export const useGetDashboardStats = () => {
     const { data, error, isLoading, isError, isSuccess } =
         trpc.submission.getDashboardStats.useQuery(undefined)

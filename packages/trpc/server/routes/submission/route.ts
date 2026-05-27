@@ -9,6 +9,8 @@ import {
     getFormAnalyticsOutputModel,
     getDashboardStatsInputModel,
     getDashboardStatsOutputModel,
+    getPublicStatsInputModel,
+    getPublicStatsOutputModel,
 } from "./model";
 import { submissionService } from "../../services";
 
@@ -16,6 +18,14 @@ const TAGS = ["Submission"];
 const getPath = generatePath("/submission");
 
 export const submissionRouter = router({
+
+    getPublicStats: publicProcedure
+        .meta({ openapi: { method: "GET", path: getPath("/getPublicStats"), tags: TAGS } })
+        .input(getPublicStatsInputModel)
+        .output(getPublicStatsOutputModel)
+        .query(async () => {
+            return submissionService.getPublicStats()
+        }),
 
     submitForm: publicProcedure
         .meta({

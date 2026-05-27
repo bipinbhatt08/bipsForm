@@ -9,21 +9,32 @@ import {
   IconCheck,
   IconForms,
   IconLayoutDashboard,
+  IconListDetails,
   IconPalette,
   IconShare,
   IconShieldCheck,
   IconSparkles,
+  IconUser,
   IconX,
 } from "@tabler/icons-react"
 import { Button } from "~/components/ui/button"
 import { Badge } from "~/components/ui/badge"
 import { useUser } from "~/hooks/api/auth"
+import { useGetPublicStats } from "~/hooks/api/submission"
+import { useGetPublicForms } from "~/hooks/api/form"
+import { THEMES } from "~/app/forms/[slug]/themes"
 import { LogoMark } from "~/components/brand"
 import { PublicNavbar } from "~/components/public-navbar"
 
 // ─── Hero ───────────────────────────────────────────────────────────────────────
 
-function Hero({ isLoggedIn }: { isLoggedIn: boolean }) {
+function formatStatNum(n: number | null): string {
+  if (n === null) return "—"
+  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k+`
+  return String(n)
+}
+
+function Hero({ isLoggedIn, totalForms, totalResponses }: { isLoggedIn: boolean; totalForms: number | null; totalResponses: number | null }) {
   return (
     <section className="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-20">
       {/* Dot grid */}
@@ -99,10 +110,10 @@ function Hero({ isLoggedIn }: { isLoggedIn: boolean }) {
         {/* Stats strip */}
         <div className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-px rounded-2xl border border-border/40 overflow-hidden bg-border/40 max-w-2xl mx-auto">
           {[
-            { value: "—",  label: "Forms created",      live: true  },
-            { value: "—",  label: "Responses collected", live: true  },
-            { value: "9",  label: "Field types",         live: false },
-            { value: "5",  label: "Themes",              live: false },
+            { value: formatStatNum(totalForms),     label: "Forms published",     live: true  },
+            { value: formatStatNum(totalResponses), label: "Responses collected",  live: true  },
+            { value: "9",                           label: "Field types",          live: false },
+            { value: "5",                           label: "Themes",               live: false },
           ].map((stat) => (
             <div key={stat.label} className="flex flex-col items-center justify-center gap-1 bg-background py-5 px-4 text-center">
               <div className="flex items-center gap-1.5">
@@ -401,6 +412,91 @@ function HowItWorks() {
             </div>
           ))}
         </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Featured Forms ─────────────────────────────────────────────────────────────
+
+function FeaturedForms() {
+  const { forms, isLoading } = useGetPublicForms()
+  const featured = forms.slice(0, 3)
+
+  if (!isLoading && featured.length === 0) return null
+
+  return (
+    <section className="py-16 sm:py-20 border-t border-border/30">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+          <div>
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 hover:bg-primary/10 px-4 py-1.5 text-xs font-semibold tracking-widest uppercase">
+              Live forms
+            </Badge>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">See it in action</h2>
+            <p className="mt-2 text-muted-foreground text-sm max-w-md leading-relaxed">
+              Real forms built by the community — open for anyone to fill out right now.
+            </p>
+          </div>
+          <Button asChild variant="outline" className="shrink-0 gap-2 border-border/60 hover:border-primary/40 hover:bg-primary/5">
+            <Link href="/explore">
+              Explore all forms
+              <IconArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-52 rounded-2xl border border-border/40 bg-muted/20 animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {featured.map((form) => {
+              const theme = THEMES[form.themeId ?? "minimal"] ?? THEMES["minimal"]!
+              return (
+                <div
+                  key={form.id}
+                  className="group flex flex-col rounded-2xl border border-border/50 bg-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                  style={{ borderLeftColor: theme.swatch, borderLeftWidth: "3px" }}
+                >
+                  <div className="flex flex-col flex-1 p-5 gap-4">
+                    <div className="flex items-center justify-between">
+                      <span
+                        className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+                        style={{ background: `${theme.swatch}22`, color: theme.swatch }}
+                      >
+                        {theme.label}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground/40 flex items-center gap-1">
+                        <IconListDetails className="size-3" />
+                        {form.fieldCount} fields
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-base leading-snug mb-1.5">{form.title}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{form.description}</p>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-3 border-t border-border/40">
+                      <span className="flex items-center gap-1.5">
+                        <IconUser className="size-3.5 shrink-0" />
+                        <span className="truncate max-w-[110px]">{form.creatorName}</span>
+                      </span>
+                    </div>
+                    <Button asChild size="sm" variant="outline" className="w-full gap-1.5 font-semibold h-9 border-border/60 hover:bg-muted/50">
+                      <Link href={`/forms/${form.slug}`}>
+                        Fill this form
+                        <IconArrowRight className="size-3.5" />
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </section>
   )
@@ -778,13 +874,15 @@ function Footer() {
 export default function LandingPage() {
   const { user, isLoading } = useUser()
   const isLoggedIn = !isLoading && !!user?.id
+  const { totalForms, totalResponses } = useGetPublicStats()
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
       <PublicNavbar isLoggedIn={isLoggedIn} activePage="home" />
       <main>
-        <Hero isLoggedIn={isLoggedIn} />
+        <Hero isLoggedIn={isLoggedIn} totalForms={totalForms} totalResponses={totalResponses} />
         <TrustedBy />
+        <FeaturedForms />
         <Features />
         <HowItWorks />
         <Testimonials />

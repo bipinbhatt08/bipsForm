@@ -110,6 +110,17 @@ class SubmissionService {
         }
     }
 
+    public async getPublicStats() {
+        const [formsResult, submissionsResult] = await Promise.all([
+            db.select({ total: count() }).from(formsTable).where(eq(formsTable.isPublished, true)),
+            db.select({ total: count() }).from(submissionTable),
+        ])
+        return {
+            totalForms: formsResult[0]?.total ?? 0,
+            totalResponses: submissionsResult[0]?.total ?? 0,
+        }
+    }
+
     public async getFormSubmissions(
         formId: string,
         userId: string,
