@@ -1,4 +1,5 @@
-import { asc, count, db, desc, eq, sql } from "@repo/database"
+import { and, asc, count, db, desc, eq, inArray, sql } from "@repo/database"
+import { formsTable } from "@repo/database/models/form"
 import { submissionTable } from "@repo/database/models/form-submission"
 import FormService from "../form"
 import { CustomError } from "../utils/errors"
@@ -62,6 +63,50 @@ class SubmissionService {
         return {
             totalSubmissions: totalResult[0]?.total ?? 0,
             dailySubmissions: dailyResult.map(r => ({ date: r.date, count: r.count })),
+        }
+    }
+
+    public async getDashboardStats(userId: string) {
+        const userForms = await db
+            .select({ id: formsTable.id, title: formsTable.title, slug: formsTable.slug, isPublished: formsTable.isPublished })
+            .from(formsTable)
+            .where(eq(formsTable.createdBy, userId))
+
+        const formIds = userForms.map((f) => f.id)
+        const publishedCount = userForms.filter((f) => f.isPublished).length
+
+        if (formIds.length === 0) {
+            return { totalForms: 0, publishedForms: 0, totalSubmissions: 0, dailySubmissions: [], topForms: [] }
+        }
+
+        const [totalResult, dailyResult, perFormResult] = await Promise.all([
+            db.select({ total: count() }).from(submissionTable).where(inArray(submissionTable.formId, formIds)),
+            db.select({
+                date: sql<string>`DATE(${submissionTable.createdAt})`.as("date"),
+                count: count(),
+            })
+            .from(submissionTable)
+            .where(inArray(submissionTable.formId, formIds))
+            .groupBy(sql`DATE(${submissionTable.createdAt})`)
+            .orderBy(sql`DATE(${submissionTable.createdAt})`),
+            db.select({ formId: submissionTable.formId, count: count() })
+            .from(submissionTable)
+            .where(inArray(submissionTable.formId, formIds))
+            .groupBy(submissionTable.formId),
+        ])
+
+        const perFormMap = Object.fromEntries(perFormResult.map((r) => [r.formId, r.count]))
+        const topForms = userForms
+            .map((f) => ({ id: f.id, title: f.title, slug: f.slug, submissions: perFormMap[f.id] ?? 0 }))
+            .sort((a, b) => b.submissions - a.submissions)
+            .slice(0, 5)
+
+        return {
+            totalForms: userForms.length,
+            publishedForms: publishedCount,
+            totalSubmissions: totalResult[0]?.total ?? 0,
+            dailySubmissions: dailyResult.map((r) => ({ date: r.date, count: r.count })),
+            topForms,
         }
     }
 

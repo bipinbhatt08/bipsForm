@@ -20,6 +20,18 @@ export const useSubmitForm = () => {
     }
 }
 
+export const useGetDashboardStats = () => {
+    const { data, error, isLoading, isError, isSuccess } =
+        trpc.submission.getDashboardStats.useQuery(undefined)
+    return {
+        stats: data ?? null,
+        error,
+        isLoading,
+        isError,
+        isSuccess,
+    }
+}
+
 export const useGetFormAnalytics = (formId: string) => {
     const { data, error, isLoading, isError, isSuccess } =
         trpc.submission.getFormAnalytics.useQuery(

@@ -36,3 +36,12 @@ export const getFormAnalyticsOutputModel = z.object({
     totalSubmissions: z.number(),
     dailySubmissions: z.array(z.object({ date: z.string(), count: z.number() })),
 })
+
+export const getDashboardStatsInputModel = z.undefined()
+export const getDashboardStatsOutputModel = z.object({
+    totalForms: z.number(),
+    publishedForms: z.number(),
+    totalSubmissions: z.number(),
+    dailySubmissions: z.array(z.object({ date: z.string(), count: z.number() })),
+    topForms: z.array(z.object({ id: z.string(), title: z.string(), slug: z.string(), submissions: z.number() })),
+})

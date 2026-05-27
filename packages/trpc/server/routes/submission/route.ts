@@ -7,6 +7,8 @@ import {
     getFormSubmissionsOutputModel,
     getFormAnalyticsInputModel,
     getFormAnalyticsOutputModel,
+    getDashboardStatsInputModel,
+    getDashboardStatsOutputModel,
 } from "./model";
 import { submissionService } from "../../services";
 
@@ -42,6 +44,14 @@ export const submissionRouter = router({
         .output(getFormSubmissionsOutputModel)
         .query(async ({ input, ctx }) => {
             return submissionService.getFormSubmissions(input.formId, ctx.user.id, input.page, input.pageSize, input.sortDir) as any
+        }),
+
+    getDashboardStats: authenticatedProcedure
+        .meta({ openapi: { method: "GET", path: getPath("/getDashboardStats"), tags: TAGS } })
+        .input(getDashboardStatsInputModel)
+        .output(getDashboardStatsOutputModel)
+        .query(async ({ ctx }) => {
+            return submissionService.getDashboardStats(ctx.user.id)
         }),
 
     getFormAnalytics: authenticatedProcedure
