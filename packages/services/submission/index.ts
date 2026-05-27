@@ -1,4 +1,4 @@
-import { count, db, desc, eq, sql } from "@repo/database"
+import { asc, count, db, desc, eq, sql } from "@repo/database"
 import { submissionTable } from "@repo/database/models/form-submission"
 import FormService from "../form"
 import { CustomError } from "../utils/errors"
@@ -65,18 +65,37 @@ class SubmissionService {
         }
     }
 
-    public async getFormSubmissions(formId: string, userId: string) {
+    public async getFormSubmissions(
+        formId: string,
+        userId: string,
+        page: number,
+        pageSize: number,
+        sortDir: "asc" | "desc",
+    ) {
         await this.formService.verifyFormOwnership(formId, userId)
 
-        return db
-            .select({
-                id: submissionTable.id,
-                values: submissionTable.values,
-                createdAt: submissionTable.createdAt,
-            })
-            .from(submissionTable)
-            .where(eq(submissionTable.formId, formId))
-            .orderBy(desc(submissionTable.createdAt))
+        const offset = (page - 1) * pageSize
+        const order = sortDir === "asc" ? asc(submissionTable.createdAt) : desc(submissionTable.createdAt)
+
+        const [rows, totalResult] = await Promise.all([
+            db
+                .select({ id: submissionTable.id, values: submissionTable.values, createdAt: submissionTable.createdAt })
+                .from(submissionTable)
+                .where(eq(submissionTable.formId, formId))
+                .orderBy(order)
+                .limit(pageSize)
+                .offset(offset),
+            db.select({ total: count() }).from(submissionTable).where(eq(submissionTable.formId, formId)),
+        ])
+
+        const total = totalResult[0]?.total ?? 0
+        return {
+            submissions: rows,
+            total,
+            page,
+            pageSize,
+            totalPages: Math.ceil(total / pageSize),
+        }
     }
 }
 

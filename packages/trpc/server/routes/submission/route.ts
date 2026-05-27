@@ -41,7 +41,7 @@ export const submissionRouter = router({
         .input(getFormSubmissionsInputModel)
         .output(getFormSubmissionsOutputModel)
         .query(async ({ input, ctx }) => {
-            return submissionService.getFormSubmissions(input.formId, ctx.user.id) as any
+            return submissionService.getFormSubmissions(input.formId, ctx.user.id, input.page, input.pageSize, input.sortDir) as any
         }),
 
     getFormAnalytics: authenticatedProcedure

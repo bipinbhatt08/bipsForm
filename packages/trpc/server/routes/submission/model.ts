@@ -10,14 +10,23 @@ export const submitFormOutputModel = z.object({
 })
 
 export const getFormSubmissionsInputModel = z.object({
-    formId: z.string().uuid().describe('ID of the form'),
+    formId: z.string().uuid(),
+    page: z.number().int().min(1).default(1),
+    pageSize: z.number().int().min(1).max(100).default(25),
+    sortDir: z.enum(["asc", "desc"]).default("desc"),
 })
 
-export const getFormSubmissionsOutputModel = z.array(z.object({
-    id: z.string().describe('ID of the submission'),
-    values: z.unknown().describe('Submitted values'),
-    createdAt: z.date().nullable().describe('Submission timestamp'),
-}))
+export const getFormSubmissionsOutputModel = z.object({
+    submissions: z.array(z.object({
+        id: z.string(),
+        values: z.unknown(),
+        createdAt: z.date().nullable(),
+    })),
+    total: z.number(),
+    page: z.number(),
+    pageSize: z.number(),
+    totalPages: z.number(),
+})
 
 export const getFormAnalyticsInputModel = z.object({
     formId: z.string().uuid().describe('ID of the form'),

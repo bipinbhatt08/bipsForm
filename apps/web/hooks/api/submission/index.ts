@@ -35,14 +35,22 @@ export const useGetFormAnalytics = (formId: string) => {
     }
 }
 
-export const useGetFormSubmissions = (formId: string) => {
+export const useGetFormSubmissions = (
+    formId: string,
+    params: { page?: number; pageSize?: number; sortDir?: "asc" | "desc" } = {}
+) => {
+    const { page = 1, pageSize = 25, sortDir = "desc" } = params
     const { data, error, isLoading, isError, isSuccess, refetch } =
         trpc.submission.getFormSubmissions.useQuery(
-            { formId },
+            { formId, page, pageSize, sortDir },
             { enabled: !!formId }
         )
     return {
-        submissions: data ?? [],
+        submissions: data?.submissions ?? [],
+        total: data?.total ?? 0,
+        totalPages: data?.totalPages ?? 0,
+        page: data?.page ?? page,
+        pageSize: data?.pageSize ?? pageSize,
         error,
         isLoading,
         isError,

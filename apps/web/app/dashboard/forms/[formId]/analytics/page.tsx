@@ -42,7 +42,7 @@ export default function AnalyticsPage() {
   const { forms, isLoading: isLoadingForms } = useGetForms()
   const form = forms.find((f) => f.id === formId)
   const { analytics, isLoading: isLoadingAnalytics } = useGetFormAnalytics(formId)
-  const { submissions, isLoading: isLoadingSubmissions } = useGetFormSubmissions(formId)
+  const { submissions, isLoading: isLoadingSubmissions } = useGetFormSubmissions(formId, { pageSize: 100 })
   const { fields, isLoading: isLoadingFields } = useGetFormFields(formId)
 
   const isLoading = isLoadingAnalytics || isLoadingSubmissions || isLoadingFields
@@ -196,7 +196,7 @@ export default function AnalyticsPage() {
                                   cy="50%"
                                   outerRadius={70}
                                   dataKey="value"
-                                  label={({ name, percent }) => `${name} ${Math.round(percent * 100)}%`}
+                                  label={({ name, percent }) => `${name} ${Math.round((percent ?? 0) * 100)}%`}
                                   labelLine={false}
                                 >
                                   {insight.pieData.map((_, i) => (
