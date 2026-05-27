@@ -102,6 +102,14 @@ export const useGetPublicForms = () => {
     }
 }
 
+export const useDeleteForm = () => {
+    const utils = trpc.useUtils()
+    const { mutateAsync: deleteFormAsync, isPending } = trpc.form.deleteForm.useMutation({
+        onSuccess: async () => await utils.form.invalidate(),
+    })
+    return { deleteFormAsync, isPending }
+}
+
 export const useUpdateFormField = () => {
     const utils = trpc.useUtils()
     const { mutateAsync: updateFormFieldAsync, isPending } = trpc.form.updateFormField.useMutation({

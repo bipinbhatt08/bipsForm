@@ -39,9 +39,20 @@ import {
   TableRow,
 } from "~/components/ui/table"
 import { useSearchParams } from "next/navigation"
+import { toast } from "sonner"
 import { CreateFormModal } from "~/components/create-form-modal"
 import { FormPreviewSheet } from "~/components/form-preview-sheet"
-import { useGetForms } from "~/hooks/api/form"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog"
+import { useDeleteForm, useGetForms } from "~/hooks/api/form"
 import Link from "next/link"
 
 type Form = ReturnType<typeof useGetForms>["forms"][number]
@@ -123,53 +134,44 @@ const columns: ColumnDef<Form>[] = [
     header: "",
     cell: ({ row, table }) => (
       <FormActions
-      slug={row?.original?.slug
-      }
         id={row.original.id}
-        onPreview={(table.options.meta as { onPreview: (id: string) => void }).onPreview}
+        slug={row.original.slug}
+        onPreview={(table.options.meta as { onPreview: (id: string) => void; onDelete: (id: string) => void }).onPreview}
+        onDelete={(table.options.meta as { onPreview: (id: string) => void; onDelete: (id: string) => void }).onDelete}
       />
     ),
   },
 ]
 
-function FormActions({ id, onPreview, slug}: { id: string;slug:string; onPreview: (id: string) => void }) {
+function FormActions({ id, slug, onPreview, onDelete }: { id: string; slug: string; onPreview: (id: string) => void; onDelete: (id: string) => void }) {
   const router = useRouter()
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8 text-muted-foreground data-[state=open]:bg-muted"
-        >
+        <Button variant="ghost" size="icon" className="size-8 text-muted-foreground data-[state=open]:bg-muted">
           <IconDotsVertical className="size-4" />
           <span className="sr-only">Actions</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem className="gap-2" onClick={() => router.push(`/dashboard/forms/${id}`)}>
-          <IconEdit className="size-4" />
-          Edit
+          <IconEdit className="size-4" />Edit
         </DropdownMenuItem>
         <DropdownMenuItem className="gap-2" onClick={() => onPreview(id)}>
-          <IconEye className="size-4" />
-          Preview
+          <IconEye className="size-4" />Preview
         </DropdownMenuItem>
         <DropdownMenuItem className="gap-2" onClick={() => router.push(`/dashboard/forms/${id}/submissions`)}>
-          <IconClipboardList className="size-4" />
-          View Responses
+          <IconClipboardList className="size-4" />View Responses
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2" >
-          <Link href={`/forms/${slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-full">
-            <IconEye className="size-4" />
-            View Live
+        <DropdownMenuItem className="gap-2" asChild>
+          <Link href={`/forms/${slug}`} target="_blank" rel="noopener noreferrer">
+            <IconEye className="size-4" />View Live
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" className="gap-2">
-          <IconTrash className="size-4" />
-          Delete
+        <DropdownMenuItem variant="destructive" className="gap-2" onClick={() => onDelete(id)}>
+          <IconTrash className="size-4" />Delete
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -189,7 +191,21 @@ export default function FormsPage() {
   }, [searchParams])
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [previewId, setPreviewId] = React.useState<string | null>(null)
+  const [deleteId, setDeleteId] = React.useState<string | null>(null)
   const { forms, isLoading } = useGetForms()
+  const { deleteFormAsync } = useDeleteForm()
+
+  async function handleDelete() {
+    if (!deleteId) return
+    try {
+      await deleteFormAsync({ formId: deleteId })
+      toast.success("Form deleted")
+    } catch {
+      toast.error("Failed to delete form")
+    } finally {
+      setDeleteId(null)
+    }
+  }
 
   const table = useReactTable({
     data: forms,
@@ -198,7 +214,7 @@ export default function FormsPage() {
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    meta: { onPreview: setPreviewId },
+    meta: { onPreview: setPreviewId, onDelete: setDeleteId },
   })
 
   return (
@@ -273,6 +289,26 @@ export default function FormsPage() {
         open={previewId !== null}
         onOpenChange={(open) => { if (!open) setPreviewId(null) }}
       />
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => { if (!open) setDeleteId(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this form?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the form, all its fields, and all responses. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDelete}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
