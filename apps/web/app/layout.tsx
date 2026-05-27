@@ -13,17 +13,44 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
 });
 
+const BASE_URL = process.env.NEXT_PUBLIC_FRONTEND_BASE_URL!
+
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL),
   title: {
-    default: "BipsForm",
+    default: "BipsForm — Always on form",
     template: "%s | BipsForm",
   },
-  description: "Always on form — build, share and collect responses at scale.",
-  keywords: ["form builder", "form creator", "survey", "BipsForm"],
+  description: "Always on form — build, share and collect responses at scale. 9 field types, 5 beautiful themes, conditional logic, and a real-time response dashboard. Free to start.",
+  keywords: ["form builder", "online forms", "survey builder", "conditional logic", "BipsForm", "always on form"],
+  authors: [{ name: "BipsForm" }],
+  creator: "BipsForm",
   openGraph: {
-    title: "BipsForm",
-    description: "Always on form — build, share and collect responses at scale.",
+    title: "BipsForm — Always on form",
+    description: "Always on form — build, share and collect responses at scale. Stunning themes, conditional logic, real-time dashboard.",
+    url: BASE_URL,
+    siteName: "BipsForm",
     type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BipsForm — Always on form",
+    description: "Always on form — build, share and collect responses at scale. Stunning themes, conditional logic, real-time dashboard.",
+    creator: "@bipsform",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
   },
 };
 
