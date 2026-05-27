@@ -40,7 +40,17 @@ import { Skeleton } from "~/components/ui/skeleton"
 import { Switch } from "~/components/ui/switch"
 import { cn } from "~/lib/utils"
 import { FormPreviewSheet } from "~/components/form-preview-sheet"
-import { useCreateFormField, useGetFormFields, useGetForms, useUpdateForm } from "~/hooks/api/form"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog"
+import { useCreateFormField, useDeleteFormField, useGetFormFields, useGetForms, useUpdateForm, useUpdateFormField } from "~/hooks/api/form"
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -706,12 +716,15 @@ export default function FormBuilderPage() {
   const { forms } = useGetForms()
   const form = forms.find((f) => f.id === formId)
   const { createFormFieldAsync, isPending: isSaving } = useCreateFormField()
+  const { updateFormFieldAsync, isPending: isUpdatingField } = useUpdateFormField()
+  const { deleteFormFieldAsync } = useDeleteFormField()
   const { fields: apiFields, isLoading: isLoadingFields } = useGetFormFields(formId)
   const { updateFormAsync } = useUpdateForm()
 
   const [fields, setFields] = React.useState<FormField[]>([])
   const [panel, setPanel] = React.useState<PanelMode>({ kind: "idle" })
   const [draft, setDraft] = React.useState<Omit<FormField, "id">>(emptyDraft())
+  const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null)
   const [previewOpen, setPreviewOpen] = React.useState(false)
   const [isPublished, setIsPublished] = React.useState<boolean>(false)
   const [isPublic, setIsPublic] = React.useState<boolean>(false)
@@ -809,14 +822,37 @@ export default function FormBuilderPage() {
         toast.error("Failed to add field")
       }
     } else if (editingId) {
-      setFields((prev) => prev.map((f) => (f.id === editingId ? { ...draft, id: f.id } : f)))
-      closePanel()
+      try {
+        await updateFormFieldAsync({
+          fieldId: editingId,
+          formId,
+          label: draft.label,
+          description: draft.description || null,
+          placeholder: draft.placeholder || null,
+          isRequired: draft.isRequired,
+          options: SELECT_TYPES.includes(draft.type) ? draft.options.map(({ label, value }) => ({ label, value })) : null,
+          validations: Object.keys(draft.validation).length > 0 ? (draft.validation as Record<string, unknown>) : null,
+          conditions: draft.condition ? (draft.condition as unknown as Record<string, unknown>) : null,
+        })
+        setFields((prev) => prev.map((f) => (f.id === editingId ? { ...draft, id: f.id } : f)))
+        closePanel()
+        toast.success("Field updated")
+      } catch {
+        toast.error("Failed to update field")
+      }
     }
   }
 
-  function deleteField(id: string) {
-    setFields((prev) => prev.filter((f) => f.id !== id))
-    if (editingId === id) closePanel()
+  async function deleteField(id: string) {
+    try {
+      await deleteFormFieldAsync({ fieldId: id, formId })
+      setFields((prev) => prev.filter((f) => f.id !== id))
+      if (editingId === id) closePanel()
+      setDeleteConfirmId(null)
+      toast.success("Field deleted")
+    } catch {
+      toast.error("Failed to delete field")
+    }
   }
 
   function moveField(id: string, dir: "up" | "down") {
@@ -1013,7 +1049,7 @@ export default function FormBuilderPage() {
                   onSelect={() => openEdit(field)}
                   onMoveUp={() => moveField(field.id, "up")}
                   onMoveDown={() => moveField(field.id, "down")}
-                  onDelete={() => deleteField(field.id)}
+                  onDelete={() => setDeleteConfirmId(field.id)}
                 />
               ))}
 
@@ -1053,7 +1089,7 @@ export default function FormBuilderPage() {
                 onChange={updateDraft}
                 onSave={handleSave}
                 onClose={closePanel}
-                isSaving={isSaving}
+                isSaving={isSaving || isUpdatingField}
               />
             )}
           </div>
@@ -1065,6 +1101,26 @@ export default function FormBuilderPage() {
         open={previewOpen}
         onOpenChange={setPreviewOpen}
       />
+
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this field?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the field and any responses collected for it cannot be recovered.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteConfirmId && deleteField(deleteConfirmId)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
