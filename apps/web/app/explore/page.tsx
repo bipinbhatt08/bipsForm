@@ -17,6 +17,7 @@ import {
 import { useState, useMemo } from "react"
 import { Button } from "~/components/ui/button"
 import { useGetPublicForms } from "~/hooks/api/form"
+import { useUser } from "~/hooks/api/auth"
 import { THEMES } from "~/app/forms/[slug]/themes"
 import { PublicNavbar } from "~/components/public-navbar"
 
@@ -110,9 +111,9 @@ export default function ExplorePage() {
   const [activeTheme, setActiveTheme] = useState("all")
   const [page, setPage] = useState(1)
 
-
-
-  const {forms} = useGetPublicForms()
+  const { user, isLoading: isLoadingUser } = useUser()
+  const isLoggedIn = !isLoadingUser && !!user?.id
+  const { forms } = useGetPublicForms()
   
 //useMemo caches RETURN VALUE and recalculates only when dependencies change
   const filtered = useMemo(() => {
@@ -134,7 +135,7 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      <PublicNavbar activePage="explore" />
+      <PublicNavbar isLoggedIn={isLoggedIn} activePage="explore" />
       <main className="pt-24">
 
         {/* Hero */}
