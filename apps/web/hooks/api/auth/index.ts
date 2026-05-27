@@ -73,8 +73,9 @@ export const useUser = () =>{
 export const useLogout = () => {
     const utils = trpc.useUtils()
     const { mutateAsync: logoutAsync, isPending } = trpc.auth.logout.useMutation({
-        onSuccess: async () => {
-            await utils.invalidate()
+        onSuccess: () => {
+            // intentionally not awaited  we redirect immediately and don't need to wait for cache invalidation
+            utils.invalidate()
         }
     })
     return { logoutAsync, isPending }
