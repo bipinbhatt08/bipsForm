@@ -363,18 +363,52 @@ export default function PublicFormPage() {
     return (
       <div className="min-h-screen transition-colors duration-300" style={{ ...themeVars, backgroundColor: theme.backgroundColor }}>
         <CenteredState>
-          <div className="flex flex-col items-center gap-4">
-            <div className="rounded-full p-5" style={{ backgroundColor: `${theme.accentColor}22` }}>
-              <svg className="size-8" fill="none" viewBox="0 0 24 24" stroke={theme.accentColor ?? "currentColor"} strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
+          <div className="flex flex-col items-center gap-6 max-w-sm w-full px-4">
+
+            {/* Animated checkmark */}
+            <div className="relative flex items-center justify-center">
+              <div className="absolute size-24 rounded-full animate-ping opacity-20" style={{ backgroundColor: theme.accentColor }} />
+              <div className="relative rounded-full p-5" style={{ backgroundColor: `${theme.accentColor}22` }}>
+                <svg className="size-10" fill="none" viewBox="0 0 24 24" stroke={theme.accentColor ?? "currentColor"} strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
             </div>
-            <div>
-              <p className="text-xl font-semibold" style={{ color: theme.textColor }}>Thank you!</p>
-              <p className="mt-1.5 text-sm max-w-sm leading-relaxed" style={{ color: theme.mutedColor }}>
-                Your response has been submitted successfully.
+
+            {/* Message */}
+            <div className="text-center">
+              <p className="text-2xl font-bold tracking-tight" style={{ color: theme.textColor }}>All done!</p>
+              <p className="mt-2 text-sm leading-relaxed" style={{ color: theme.mutedColor }}>
+                Your response to <span className="font-medium" style={{ color: theme.textColor }}>{form.title}</span> has been recorded. Thanks for taking the time!
               </p>
             </div>
+
+            {/* CTAs */}
+            <div className="flex flex-col gap-2.5 w-full">
+              <a
+                href="/explore"
+                className="flex items-center justify-center gap-2 w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
+                style={{ backgroundColor: theme.accentColor, color: theme.accentForeground ?? "#fff", borderRadius: theme.borderRadius }}
+              >
+                Explore more forms
+              </a>
+              <a
+                href="/signup"
+                className="flex items-center justify-center gap-2 w-full rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors hover:opacity-80"
+                style={{ borderColor: theme.borderColor, color: theme.mutedColor, borderRadius: theme.borderRadius }}
+              >
+                Create your own form — it&apos;s free
+              </a>
+            </div>
+
+            {/* Branding */}
+            <p className="text-xs" style={{ color: theme.mutedColor }}>
+              Powered by{" "}
+              <a href="/" className="font-semibold hover:underline" style={{ color: theme.accentColor }}>
+                BipsForm
+              </a>
+            </p>
+
           </div>
         </CenteredState>
       </div>
