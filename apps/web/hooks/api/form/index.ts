@@ -102,6 +102,18 @@ export const useGetPublicForms = () => {
     }
 }
 
+export const useUpdateForm = () => {
+    const utils = trpc.useUtils()
+    const {
+        mutateAsync: updateFormAsync,
+        isPending,
+        isError,
+    } = trpc.form.updateForm.useMutation({
+        onSuccess: async () => await utils.form.invalidate(),
+    })
+    return { updateFormAsync, isPending, isError }
+}
+
 export const useGetFormBySlug = (slug: string) => {
     const { data, error, isLoading, isError, isSuccess } = trpc.form.getFormBySlug.useQuery(
         { slug },

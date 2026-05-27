@@ -13,6 +13,7 @@ import {
   IconEye,
   IconHash,
   IconLetterCase,
+  IconLink,
   IconList,
   IconLoader2,
   IconMail,
@@ -39,7 +40,7 @@ import { Skeleton } from "~/components/ui/skeleton"
 import { Switch } from "~/components/ui/switch"
 import { cn } from "~/lib/utils"
 import { FormPreviewSheet } from "~/components/form-preview-sheet"
-import { useCreateFormField, useGetFormFields, useGetForms } from "~/hooks/api/form"
+import { useCreateFormField, useGetFormFields, useGetForms, useUpdateForm } from "~/hooks/api/form"
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -706,11 +707,21 @@ export default function FormBuilderPage() {
   const form = forms.find((f) => f.id === formId)
   const { createFormFieldAsync, isPending: isSaving } = useCreateFormField()
   const { fields: apiFields, isLoading: isLoadingFields } = useGetFormFields(formId)
+  const { updateFormAsync } = useUpdateForm()
 
   const [fields, setFields] = React.useState<FormField[]>([])
   const [panel, setPanel] = React.useState<PanelMode>({ kind: "idle" })
   const [draft, setDraft] = React.useState<Omit<FormField, "id">>(emptyDraft())
   const [previewOpen, setPreviewOpen] = React.useState(false)
+  const [isPublished, setIsPublished] = React.useState<boolean>(false)
+  const [isPublic, setIsPublic] = React.useState<boolean>(false)
+
+  React.useEffect(() => {
+    if (form) {
+      setIsPublished(form.isPublished ?? false)
+      setIsPublic(form.isPublic ?? false)
+    }
+  }, [form?.id])
 
   const seededRef = React.useRef(false)
   React.useEffect(() => {
@@ -820,48 +831,120 @@ export default function FormBuilderPage() {
     })
   }
 
+  async function handleTogglePublish(next: boolean) {
+    const prev = isPublished
+    setIsPublished(next)
+    try {
+      await updateFormAsync({ formId, isPublished: next })
+      toast.success(next ? "Form published — now accepting responses" : "Form unpublished", {
+        action: {
+          label: "Undo",
+          onClick: async () => {
+            setIsPublished(prev)
+            await updateFormAsync({ formId, isPublished: prev })
+          },
+        },
+      })
+    } catch {
+      setIsPublished(prev)
+      toast.error("Failed to update. Please try again.")
+    }
+  }
+
+  async function handleTogglePublic(next: boolean) {
+    const prev = isPublic
+    setIsPublic(next)
+    try {
+      await updateFormAsync({ formId, isPublic: next })
+      toast.success(next ? "Form is now public — visible in Explore" : "Form removed from Explore", {
+        action: {
+          label: "Undo",
+          onClick: async () => {
+            setIsPublic(prev)
+            await updateFormAsync({ formId, isPublic: prev })
+          },
+        },
+      })
+    } catch {
+      setIsPublic(prev)
+      toast.error("Failed to update. Please try again.")
+    }
+  }
+
+  function handleCopyLink() {
+    const url = `${window.location.origin}/forms/${form?.slug}`
+    navigator.clipboard.writeText(url)
+    toast.success("Link copied to clipboard")
+  }
+
   // Other fields for condition builder (exclude the one being edited)
   const otherFields = fields.filter((f) => f.id !== editingId)
 
   return (
     <div className="flex flex-1 flex-col min-h-0">
       {/* Sub-header */}
-      <div className="flex shrink-0 items-center gap-3 border-b bg-background px-4 py-3 lg:px-6">
-        <Button variant="ghost" size="icon" className="shrink-0" onClick={() => router.push("/dashboard/forms")}>
-          <IconArrowLeft className="size-4" />
-        </Button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-sm font-semibold leading-tight truncate">
-            {form?.title ?? "Form Builder"}
-          </h1>
-          {form?.description && (
-            <p className="text-xs text-muted-foreground truncate mt-0.5">
-              {form.description.length > 60 ? form.description.slice(0, 60) + "…" : form.description}
-            </p>
-          )}
+      <div className="shrink-0 border-b bg-background">
+        {/* Row 1: nav + title + actions */}
+        <div className="flex items-center gap-3 px-4 py-3 lg:px-6">
+          <Button variant="ghost" size="icon" className="shrink-0" onClick={() => router.push("/dashboard/forms")}>
+            <IconArrowLeft className="size-4" />
+          </Button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-sm font-semibold leading-tight truncate">
+              {form?.title ?? "Form Builder"}
+            </h1>
+            {form?.description && (
+              <p className="text-xs text-muted-foreground truncate mt-0.5">
+                {form.description.length > 60 ? form.description.slice(0, 60) + "…" : form.description}
+              </p>
+            )}
+          </div>
+          <Badge variant="secondary" className="shrink-0 text-xs tabular-nums">
+            {fields.length} {fields.length === 1 ? "field" : "fields"}
+          </Badge>
+          <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={() => router.push(`/dashboard/forms/${formId}/submissions`)}>
+            <IconClipboardList className="size-3.5" />
+            Responses
+          </Button>
+          <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={() => setPreviewOpen(true)} disabled={fields.length === 0}>
+            <IconEye className="size-3.5" />
+            Preview
+          </Button>
         </div>
-        <Badge variant="secondary" className="shrink-0 text-xs tabular-nums">
-          {fields.length} {fields.length === 1 ? "field" : "fields"}
-        </Badge>
-        <Button
-          variant="outline"
-          size="sm"
-          className="shrink-0 gap-1.5"
-          onClick={() => router.push(`/dashboard/forms/${formId}/submissions`)}
-        >
-          <IconClipboardList className="size-3.5" />
-          Responses
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="shrink-0 gap-1.5"
-          onClick={() => setPreviewOpen(true)}
-          disabled={fields.length === 0}
-        >
-          <IconEye className="size-3.5" />
-          Preview
-        </Button>
+
+        {/* Row 2: publish controls */}
+        <div className="flex items-center gap-4 border-t px-4 py-2 lg:px-6 bg-muted/30">
+          <div className="flex items-center gap-2">
+            <Switch checked={isPublished} onCheckedChange={handleTogglePublish} id="publish-toggle" />
+            <label htmlFor="publish-toggle" className="text-xs font-medium cursor-pointer select-none">
+              {isPublished ? (
+                <span className="text-green-600 dark:text-green-400">Published</span>
+              ) : (
+                <span className="text-muted-foreground">Draft</span>
+              )}
+            </label>
+          </div>
+
+          <div className="h-4 w-px bg-border" />
+
+          <div className="flex items-center gap-2">
+            <Switch checked={isPublic} onCheckedChange={handleTogglePublic} id="public-toggle" disabled={!isPublished} />
+            <label htmlFor="public-toggle" className={cn("text-xs font-medium cursor-pointer select-none", !isPublished && "opacity-40")}>
+              {isPublic ? (
+                <span className="text-primary">Public</span>
+              ) : (
+                <span className="text-muted-foreground">Make Public</span>
+              )}
+            </label>
+          </div>
+
+          <div className="ml-auto">
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={handleCopyLink} disabled={!isPublished}>
+              <IconLink className="size-3.5" />
+              Copy link
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Body */}
