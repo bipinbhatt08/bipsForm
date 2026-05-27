@@ -38,6 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table"
+import { useSearchParams } from "next/navigation"
 import { CreateFormModal } from "~/components/create-form-modal"
 import { FormPreviewSheet } from "~/components/form-preview-sheet"
 import { useGetForms } from "~/hooks/api/form"
@@ -176,7 +177,16 @@ function FormActions({ id, onPreview, slug}: { id: string;slug:string; onPreview
 }
 
 export default function FormsPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [modalOpen, setModalOpen] = React.useState(false)
+
+  React.useEffect(() => {
+    if (searchParams.get("create") === "1") {
+      setModalOpen(true)
+      router.replace("/dashboard/forms")
+    }
+  }, [searchParams])
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [previewId, setPreviewId] = React.useState<string | null>(null)
   const { forms, isLoading } = useGetForms()
@@ -240,9 +250,13 @@ export default function FormsPage() {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="hover:bg-muted/40">
+                <TableRow
+                  key={row.id}
+                  className="hover:bg-muted/40 cursor-pointer"
+                  onClick={() => router.push(`/dashboard/forms/${row.original.id}`)}
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} onClick={cell.column.id === "actions" ? (e) => e.stopPropagation() : undefined}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

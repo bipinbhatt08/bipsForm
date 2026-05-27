@@ -2,11 +2,10 @@
 
 import * as React from "react"
 import {
-  IconChartBar,
+  IconCompass,
   IconDashboard,
+  IconExternalLink,
   IconFileDescription,
-  IconHelp,
-  IconSearch,
   IconSettings,
 } from "@tabler/icons-react"
 import Link from "next/link"
@@ -15,6 +14,7 @@ import { NavMain } from "~/components/nav-main"
 import { NavSecondary } from "~/components/nav-secondary"
 import { NavUser } from "~/components/nav-user"
 import { LogoMark, BipsFormWordmark } from "~/components/brand"
+import { useUser } from "~/hooks/api/auth"
 import {
   Sidebar,
   SidebarContent,
@@ -25,49 +25,23 @@ import {
   SidebarMenuItem,
 } from "~/components/ui/sidebar"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: IconDashboard,
-    },
-    {
-      title: "Forms",
-      url: "/dashboard/forms",
-      icon: IconFileDescription,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: IconChartBar,
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-    },
-  ],
-}
+const navMain = [
+  { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
+  { title: "Forms", url: "/dashboard/forms", icon: IconFileDescription },
+]
+
+const navSecondary = [
+  { title: "Explore", url: "/explore", icon: IconCompass },
+  { title: "Settings", url: "#", icon: IconSettings },
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useUser()
+
+  const initials = user?.fullName
+    ? user.fullName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    : "?"
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -82,12 +56,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMain} />
+        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
+
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild className="text-muted-foreground hover:text-foreground">
+              <a href="/" target="_blank" rel="noopener noreferrer">
+                <IconExternalLink className="size-4" />
+                <span>View site</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        <NavUser user={{
+          name: user?.fullName ?? "...",
+          email: user?.email ?? "",
+          avatar: "",
+          initials,
+        }} />
       </SidebarFooter>
     </Sidebar>
   )
