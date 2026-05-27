@@ -8,13 +8,15 @@ const ONE_DAY = 24 * ONE_HOUR
 const ONE_MONTH = 30 * ONE_DAY
 const ONE_YEAR = 12 * ONE_MONTH
 
+const isProd = process.env.NODE_ENV === "prod"
+
 const defaultCookieOption:CookieOptions = {
     path: "/",
     httpOnly: true,
-    secure: false,
-    sameSite: "strict",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    domain: isProd ? ".bipsform.com" : undefined,
     maxAge: ONE_YEAR
-
 }
 //don't wanna give whole res, req object to the procedure(/trpc).. so we used factory function
 export function createCookieFactory (res:Response){
