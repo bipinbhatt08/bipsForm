@@ -3,8 +3,11 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import {
+  IconCheck,
   IconDotsVertical,
   IconLogout,
+  IconPencil,
+  IconX,
 } from "@tabler/icons-react"
 
 import {
@@ -36,7 +39,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "~/components/ui/sidebar"
-import { useLogout } from "~/hooks/api/auth"
+import { useLogout, useUpdateUsername } from "~/hooks/api/auth"
 
 export function NavUser({
   user,
@@ -51,7 +54,22 @@ export function NavUser({
   const { isMobile } = useSidebar()
   const router = useRouter()
   const { logoutAsync, isPending } = useLogout()
+  const { updateUsernameAsync, isPending: isUpdating } = useUpdateUsername()
   const [confirmOpen, setConfirmOpen] = React.useState(false)
+  const [editingName, setEditingName] = React.useState(false)
+  const [nameValue, setNameValue] = React.useState(user.name)
+
+  async function handleSaveName() {
+    const trimmed = nameValue.trim()
+    if (!trimmed || trimmed === user.name) { setEditingName(false); return }
+    await updateUsernameAsync({ fullName: trimmed })
+    setEditingName(false)
+  }
+
+  function handleCancelEdit() {
+    setNameValue(user.name)
+    setEditingName(false)
+  }
 
   function handleLogout() {
     router.push("/login")
@@ -96,6 +114,36 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <div className="px-2 py-1.5">
+              <p className="text-xs text-muted-foreground mb-1.5">Display name</p>
+              {editingName ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    autoFocus
+                    value={nameValue}
+                    onChange={(e) => setNameValue(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleSaveName(); if (e.key === "Escape") handleCancelEdit() }}
+                    className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+                    maxLength={80}
+                  />
+                  <button onClick={handleSaveName} disabled={isUpdating} className="rounded-md p-1 hover:bg-muted text-muted-foreground hover:text-foreground">
+                    <IconCheck className="size-3.5" />
+                  </button>
+                  <button onClick={handleCancelEdit} className="rounded-md p-1 hover:bg-muted text-muted-foreground hover:text-foreground">
+                    <IconX className="size-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => { setNameValue(user.name); setEditingName(true) }}
+                  className="flex w-full items-center justify-between rounded-md px-2 py-1 text-sm hover:bg-muted group"
+                >
+                  <span className="truncate">{user.name}</span>
+                  <IconPencil className="size-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0 ml-2" />
+                </button>
+              )}
+            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setConfirmOpen(true)} className="text-destructive focus:text-destructive">
               <IconLogout />

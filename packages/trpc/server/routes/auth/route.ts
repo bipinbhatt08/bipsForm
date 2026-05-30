@@ -4,7 +4,7 @@ import { authenticatedProcedure, publicProcedure, router } from "../../trpc";
 import { clearAuthenticationCookie, getAuthenticationCookie, setAuthenticationCookie } from "../../utils/cookie";
 import { generatePath } from "../../utils/path-generator";
 
-import {  createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswordOutputModel, getLoggedInUserInfoInputModel, getLoggedInUserInfoOutputModel, logoutInputModel, logoutOutputModel, signInUserWithEmailAndPasswordInputModel, signInUserWithEmailAndPasswordOutputModel } from "./model";
+import {  createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswordOutputModel, getLoggedInUserInfoInputModel, getLoggedInUserInfoOutputModel, logoutInputModel, logoutOutputModel, signInUserWithEmailAndPasswordInputModel, signInUserWithEmailAndPasswordOutputModel, updateUserFullNameInputModel, updateUserFullNameOutputModel } from "./model";
 
 const TAGS = ["Authentication"];
 const getPath = generatePath("/authentication");
@@ -69,6 +69,20 @@ export const authRouer = router({
     .mutation(async({ctx})=>{
       clearAuthenticationCookie(ctx)
       return { success: true }
+    }),
+
+    updateUserFullName: authenticatedProcedure
+    .meta({
+     openapi:{
+      method:"PATCH",
+      path:getPath("/updateUserFullName"),
+      tags:TAGS
+     }
+    })
+    .input(updateUserFullNameInputModel)
+    .output(updateUserFullNameOutputModel)
+    .mutation(async({input,ctx})=>{
+        return await userService.updateUserFullName(ctx.user.id, input)
     }),
 
     getLoggedInUserInfo: authenticatedProcedure

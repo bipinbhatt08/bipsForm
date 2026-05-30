@@ -3,7 +3,7 @@ import * as JWT from 'jsonwebtoken'
 import {db, eq, ne} from "@repo/database"
 import {usersTable} from "@repo/database/models/user"
 import { env } from '../env'
-import { createUserWithEmailAndPasswordInput, CreateUserWithEmailAndPasswordInputType, generateUserTokenPayload, GenerateUserTokenPayloadType, signInUserWithEmailAndPasswordInput, SignInUserWithEmailAndPasswordInputType } from './model'
+import { createUserWithEmailAndPasswordInput, CreateUserWithEmailAndPasswordInputType, generateUserTokenPayload, GenerateUserTokenPayloadType, signInUserWithEmailAndPasswordInput, SignInUserWithEmailAndPasswordInputType, updateUserFullNameInput, UpdateUserFullNameInputType } from './model'
 import { CustomError } from '../utils/errors'
 
 class UserService {
@@ -106,6 +106,13 @@ class UserService {
         }
 
 
+    }
+
+    public async updateUserFullName(id: string, payload: UpdateUserFullNameInputType) {
+        const { fullName } = await updateUserFullNameInput.parseAsync(payload)
+        const result = await db.update(usersTable).set({ fullName }).where(eq(usersTable.id, id)).returning({ id: usersTable.id, fullName: usersTable.fullName })
+        if (!result || result.length === 0) throw CustomError.notFound("User not found")
+        return result[0]!
     }
 
     public async verifyAndDecodeUserToken(token:string){

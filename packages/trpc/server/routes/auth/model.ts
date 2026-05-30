@@ -30,3 +30,11 @@ export const getLoggedInUserInfoOutputModel = z.object({
 export const logoutInputModel = z.object({})
 export const logoutOutputModel = z.object({ success: z.boolean() })
 
+export const updateUserFullNameInputModel = z.object({
+    fullName: z.string().min(1).max(80).describe("New full name of the user"),
+})
+export const updateUserFullNameOutputModel = z.object({
+    id: z.string(),
+    fullName: z.string(),
+})
+
