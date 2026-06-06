@@ -34,7 +34,7 @@ function formatStatNum(n: number | null): string {
   return String(n)
 }
 
-function Hero({ isLoggedIn, totalForms, totalResponses }: { isLoggedIn: boolean; totalForms: number | null; totalResponses: number | null }) {
+function Hero({ isLoggedIn, totalForms, totalResponses, isStatsLoading }: { isLoggedIn: boolean; totalForms: number | null; totalResponses: number | null; isStatsLoading: boolean }) {
   return (
     <section className="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-20">
       {/* Dot grid */}
@@ -110,15 +110,21 @@ function Hero({ isLoggedIn, totalForms, totalResponses }: { isLoggedIn: boolean;
         {/* Stats strip */}
         <div className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-px rounded-2xl border border-border/40 overflow-hidden bg-border/40 max-w-2xl mx-auto">
           {[
-            { value: formatStatNum(totalForms),     label: "Forms published",     live: true  },
-            { value: formatStatNum(totalResponses), label: "Responses collected",  live: true  },
-            { value: "9",                           label: "Field types",          live: false },
-            { value: "5",                           label: "Themes",               live: false },
+            { value: totalForms,     label: "Forms published",     live: true  },
+            { value: totalResponses, label: "Responses collected",  live: true  },
+            { value: "9",           label: "Field types",          live: false },
+            { value: "5",           label: "Themes",               live: false },
           ].map((stat) => (
             <div key={stat.label} className="flex flex-col items-center justify-center gap-1 bg-background py-5 px-4 text-center">
               <div className="flex items-center gap-1.5">
-                <span className="text-2xl font-bold tabular-nums">{stat.value}</span>
-                {stat.live && (
+                {isStatsLoading && stat.live ? (
+                  <div className="h-7 w-12 rounded-md bg-muted animate-pulse" />
+                ) : (
+                  <span className="text-2xl font-bold tabular-nums">
+                    {stat.live ? formatStatNum(stat.value as number | null) : stat.value}
+                  </span>
+                )}
+                {stat.live && !isStatsLoading && (
                   <span className="mt-0.5 size-1.5 rounded-full bg-primary/50 animate-pulse" />
                 )}
               </div>
@@ -874,13 +880,13 @@ function Footer() {
 export default function LandingPage() {
   const { user, isLoading } = useUser()
   const isLoggedIn = !isLoading && !!user?.id
-  const { totalForms, totalResponses } = useGetPublicStats()
+  const { totalForms, totalResponses, isLoading: isStatsLoading } = useGetPublicStats()
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
       <PublicNavbar isLoggedIn={isLoggedIn} activePage="home" />
       <main>
-        <Hero isLoggedIn={isLoggedIn} totalForms={totalForms} totalResponses={totalResponses} />
+        <Hero isLoggedIn={isLoggedIn} totalForms={totalForms} totalResponses={totalResponses} isStatsLoading={isStatsLoading} />
         <TrustedBy />
         <FeaturedForms />
         <Features />

@@ -243,8 +243,29 @@ function FormsPageInner() {
       </div>
 
       {isLoading ? (
-        <div className="flex flex-1 items-center justify-center text-muted-foreground">
-          Loading forms…
+        <div className="rounded-lg border overflow-hidden">
+          <Table>
+            <TableHeader className="bg-muted">
+              <TableRow>
+                {["Title", "Status", "Visibility", "Locked", "Created", "Expires On", ""].map((h) => (
+                  <TableHead key={h}>{h}</TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i} className="animate-pulse">
+                  <TableCell><div className="h-4 w-40 rounded bg-muted" /><div className="h-3 w-28 rounded bg-muted mt-1.5" /></TableCell>
+                  <TableCell><div className="h-5 w-16 rounded-full bg-muted" /></TableCell>
+                  <TableCell><div className="h-5 w-16 rounded-full bg-muted" /></TableCell>
+                  <TableCell><div className="h-4 w-14 rounded bg-muted" /></TableCell>
+                  <TableCell><div className="h-4 w-24 rounded bg-muted" /></TableCell>
+                  <TableCell><div className="h-4 w-24 rounded bg-muted" /></TableCell>
+                  <TableCell><div className="h-8 w-8 rounded bg-muted" /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       ) : forms.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center py-24">

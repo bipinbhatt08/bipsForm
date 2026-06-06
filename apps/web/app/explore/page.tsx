@@ -113,7 +113,7 @@ export default function ExplorePage() {
 
   const { user, isLoading: isLoadingUser } = useUser()
   const isLoggedIn = !isLoadingUser && !!user?.id
-  const { forms } = useGetPublicForms()
+  const { forms, isLoading } = useGetPublicForms()
   
 //useMemo caches RETURN VALUE and recalculates only when dependencies change
   const filtered = useMemo(() => {
@@ -189,7 +189,25 @@ export default function ExplorePage() {
 
         {/* Grid */}
         <section className="mx-auto max-w-7xl px-5 sm:px-8 pb-10">
-          {paginated.length === 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex flex-col rounded-2xl border border-border/50 bg-card p-5 gap-4 animate-pulse">
+                  <div className="flex items-center justify-between">
+                    <div className="h-5 w-20 rounded-full bg-muted" />
+                    <div className="h-5 w-16 rounded-md bg-muted" />
+                  </div>
+                  <div className="flex flex-col gap-2 flex-1">
+                    <div className="h-4 w-3/4 rounded bg-muted" />
+                    <div className="h-3 w-full rounded bg-muted" />
+                    <div className="h-3 w-2/3 rounded bg-muted" />
+                  </div>
+                  <div className="h-px w-full bg-border/40" />
+                  <div className="h-9 w-full rounded-lg bg-muted" />
+                </div>
+              ))}
+            </div>
+          ) : paginated.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
               <div className="rounded-full bg-muted p-4">
                 <IconForms className="size-8 text-muted-foreground" />
