@@ -9,11 +9,14 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconClipboardList,
+  IconDownload,
+  IconLoader2,
   IconRefresh,
   IconStar,
   IconSortAscending,
   IconSortDescending,
 } from "@tabler/icons-react"
+import { toast } from "sonner"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import {
@@ -38,8 +41,30 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table"
+import { trpc } from "~/trpc/client"
 import { useGetForms, useGetFormFields } from "~/hooks/api/form"
 import { useGetFormSubmissions } from "~/hooks/api/submission"
+
+function buildCSV(fields: Field[], submissions: Submission[]): string {
+  const esc = (v: string) => `"${v.replace(/"/g, '""')}"`
+  const headers = ["#", "Submitted", ...fields.map((f) => f.label || "Untitled")]
+  const rows = submissions.map((s, i) => {
+    const vals = (s.values ?? {}) as Record<string, unknown>
+    return [
+      String(i + 1),
+      s.createdAt ? new Date(s.createdAt).toISOString() : "",
+      ...fields.map((f) => {
+        const v = vals[f.id]
+        if (v === null || v === undefined || v === "") return ""
+        if (Array.isArray(v)) return v.join(", ")
+        return String(v)
+      }),
+    ]
+      .map(esc)
+      .join(",")
+  })
+  return [headers.map(esc).join(","), ...rows].join("\n")
+}
 
 function formatValue(value: unknown): string {
   if (value === null || value === undefined || value === "") return "—"
@@ -171,6 +196,8 @@ export default function SubmissionsPage() {
   const [pageSize, setPageSize] = React.useState(25)
   const [sortDir, setSortDir] = React.useState<"asc" | "desc">("desc")
   const [selectedIdx, setSelectedIdx] = React.useState<number | null>(null)
+  const [isExporting, setIsExporting] = React.useState(false)
+  const utils = trpc.useUtils()
 
   const { forms, isLoading: isLoadingForms } = useGetForms()
   const form = forms.find((f) => f.id === formId)
@@ -216,6 +243,30 @@ export default function SubmissionsPage() {
     }
   }
 
+  async function handleExportCSV() {
+    setIsExporting(true)
+    try {
+      const data = await utils.submission.getFormSubmissions.fetch({
+        formId,
+        page: 1,
+        pageSize: 5000,
+        sortDir: "desc",
+      })
+      const csv = buildCSV(fields as Field[], data.submissions as Submission[])
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `${form?.title ?? "responses"}-responses.csv`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      toast.error("Failed to export CSV")
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1
   const to = Math.min(page * pageSize, total)
 
@@ -244,6 +295,17 @@ export default function SubmissionsPage() {
         <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={() => refetch()} disabled={isLoading}>
           <IconRefresh className="size-3.5" />
           Refresh
+        </Button>
+        <Button
+          size="sm"
+          className="shrink-0 gap-1.5"
+          onClick={handleExportCSV}
+          disabled={isLoading || isExporting || total === 0}
+        >
+          {isExporting
+            ? <IconLoader2 className="size-3.5 animate-spin" />
+            : <IconDownload className="size-3.5" />}
+          Export CSV
         </Button>
       </div>
 

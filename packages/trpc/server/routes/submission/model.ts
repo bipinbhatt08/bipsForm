@@ -12,7 +12,7 @@ export const submitFormOutputModel = z.object({
 export const getFormSubmissionsInputModel = z.object({
     formId: z.string().uuid(),
     page: z.number().int().min(1).default(1),
-    pageSize: z.number().int().min(1).max(100).default(25),
+    pageSize: z.number().int().min(1).max(5000).default(25),
     sortDir: z.enum(["asc", "desc"]).default("desc"),
 })
 
