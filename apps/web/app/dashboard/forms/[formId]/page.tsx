@@ -11,19 +11,22 @@ import {
   IconChevronUp,
   IconChartBar,
   IconClipboardList,
+  IconCopy,
+  IconDownload,
   IconEye,
   IconHash,
   IconLetterCase,
-  IconLink,
   IconList,
   IconLoader2,
   IconMail,
   IconPhone,
   IconPlus,
+  IconShare2,
   IconStar,
   IconTrash,
   IconX,
 } from "@tabler/icons-react"
+import { QRCodeCanvas } from "qrcode.react"
 import { toast } from "sonner"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
@@ -51,7 +54,76 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog"
 import { useCreateFormField, useDeleteFormField, useGetFormFields, useGetForms, useUpdateForm, useUpdateFormField } from "~/hooks/api/form"
+
+// ─── Share / QR modal ────────────────────────────────────────────────────────
+
+function ShareModal({ open, onOpenChange, url }: { open: boolean; onOpenChange: (v: boolean) => void; url: string }) {
+  const qrRef = React.useRef<HTMLCanvasElement>(null)
+
+  function handleCopyLink() {
+    navigator.clipboard.writeText(url)
+    toast.success("Link copied!")
+  }
+
+  function handleDownloadQR() {
+    const canvas = qrRef.current
+    if (!canvas) return
+    const link = document.createElement("a")
+    link.download = "form-qr.png"
+    link.href = canvas.toDataURL("image/png")
+    link.click()
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Share form</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col items-center gap-4 py-2">
+          {/* QR code */}
+          <div className="rounded-2xl border border-border/60 bg-white p-5 shadow-sm">
+            <QRCodeCanvas
+              ref={qrRef}
+              value={url}
+              size={180}
+              bgColor="#ffffff"
+              fgColor="#18181b"
+              level="M"
+              marginSize={1}
+            />
+          </div>
+
+          {/* Download PNG */}
+          <Button variant="outline" className="w-full gap-2" onClick={handleDownloadQR}>
+            <IconDownload className="size-4" />
+            Download QR as PNG
+          </Button>
+
+          {/* Link + copy */}
+          <div className="w-full space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">Form link</p>
+            <div className="w-full overflow-hidden rounded-lg border border-border/60 bg-muted/40 px-3 py-2">
+              <p className="truncate text-xs text-muted-foreground">{url}</p>
+            </div>
+            <Button className="w-full gap-2" onClick={handleCopyLink}>
+              <IconCopy className="size-4" />
+              Copy link
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -727,6 +799,7 @@ export default function FormBuilderPage() {
   const [draft, setDraft] = React.useState<Omit<FormField, "id">>(emptyDraft())
   const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null)
   const [previewOpen, setPreviewOpen] = React.useState(false)
+  const [shareOpen, setShareOpen] = React.useState(false)
   const [isPublished, setIsPublished] = React.useState<boolean>(false)
   const [isPublic, setIsPublic] = React.useState<boolean>(false)
 
@@ -908,12 +981,6 @@ export default function FormBuilderPage() {
     }
   }
 
-  function handleCopyLink() {
-    const url = `${window.location.origin}/forms/${form?.slug}`
-    navigator.clipboard.writeText(url)
-    toast.success("Link copied to clipboard")
-  }
-
   // Other fields for condition builder (exclude the one being edited)
   const otherFields = fields.filter((f) => f.id !== editingId)
 
@@ -978,11 +1045,11 @@ export default function FormBuilderPage() {
               )}
             </label>
           </div>
-
+              
           <div className="ml-auto">
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={handleCopyLink} disabled={!isPublished}>
-              <IconLink className="size-3.5" />
-              Copy link
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShareOpen(true)} disabled={!isPublished}>
+              <IconShare2 className="size-3.5" />
+              Share
             </Button>
           </div>
         </div>
@@ -1105,6 +1172,12 @@ export default function FormBuilderPage() {
         formId={formId}
         open={previewOpen}
         onOpenChange={setPreviewOpen}
+      />
+
+      <ShareModal
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        url={`${typeof window !== "undefined" ? window.location.origin : ""}/forms/${form?.slug ?? ""}`}
       />
 
       <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null) }}>
