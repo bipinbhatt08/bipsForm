@@ -49,7 +49,8 @@ A full-stack form builder. Create forms, collect responses, and analyze results 
 ### Dashboard & Analytics
 - User stats: total forms, total responses, today's responses
 - Per-form analytics: daily submission chart, total count
-- Submissions table: paginated, sortable, full response view
+- Submissions table: paginated, sortable, full response view, CSV export
+- Share modal: QR code, download as PNG, copy shareable link
 - Public explore page with search and theme filtering
 
 ### Auth
