@@ -3,9 +3,12 @@ import { usersTable } from "./user"
 import { formsTable } from "./form"
 import { formFieldsTable } from "./form-field"
 import { submissionTable } from "./form-submission"
+import { refreshTokensTable } from "./refresh-token"
 
+// one user can have many forms and many refresh tokens (one per device/session)
 export const usersRelations = relations(usersTable, ({ many }) => ({
   forms: many(formsTable),
+  refreshTokens:many(refreshTokensTable)
 }))
 
 export const formsRelations = relations(formsTable, ({ one, many }) => ({
@@ -29,4 +32,12 @@ export const submissionsRelations = relations(submissionTable, ({ one }) => ({
     fields: [submissionTable.formId],
     references: [formsTable.id],
   }),
+}))
+
+// each refresh token belongs to exactly one user
+export const refreshTokenRelations = relations(refreshTokensTable,({one})=>({
+  user: one(usersTable,{
+    fields: [refreshTokensTable.userId],
+    references: [usersTable.id]
+  })
 }))

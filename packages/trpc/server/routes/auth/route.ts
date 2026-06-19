@@ -1,7 +1,7 @@
 import { CustomError } from "@repo/services/utils/errors";
 import { userService } from "../../services";
 import { authenticatedProcedure, publicProcedure, router } from "../../trpc";
-import { clearAuthenticationCookie, getAuthenticationCookie, setAuthenticationCookie } from "../../utils/cookie";
+import { clearAuthenticationCookie, clearRefreshTokenCookie, getAuthenticationCookie, getRefreshTokenCookie, setAuthenticationCookie, setRefreshTokenCookie } from "../../utils/cookie";
 import { generatePath } from "../../utils/path-generator";
 
 import {  createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswordOutputModel, getLoggedInUserInfoInputModel, getLoggedInUserInfoOutputModel, logoutInputModel, logoutOutputModel, signInUserWithEmailAndPasswordInputModel, signInUserWithEmailAndPasswordOutputModel, updateUserFullNameInputModel, updateUserFullNameOutputModel } from "./model";
@@ -23,9 +23,10 @@ export const authRouer = router({
     .output(createUserWithEmailAndPasswordOutputModel)
     .mutation(async({input,ctx})=>{
       const {email,password,fullName} = input
-      const {id,token} = await userService.createUserWithEmailAndPassword({email,password,fullName})
+      const {id,accessToken, refreshToken} = await userService.createUserWithEmailAndPassword({email,password,fullName})
      
-      setAuthenticationCookie(ctx,token)
+      setAuthenticationCookie(ctx,accessToken)
+      setRefreshTokenCookie(ctx, refreshToken)
 
       return {
         id
@@ -46,9 +47,10 @@ export const authRouer = router({
     .mutation(async({input,ctx})=>{
 
         const {email,password} = input
-        const {id, token} = await userService.signInUserWithEmailAndPassword({email,password})
+        const {id, accessToken, refreshToken} = await userService.signInUserWithEmailAndPassword({email,password})
 
-        setAuthenticationCookie(ctx,token)
+        setAuthenticationCookie(ctx,accessToken)
+        setRefreshTokenCookie(ctx,refreshToken)
 
         return {
           id
@@ -67,7 +69,11 @@ export const authRouer = router({
     .input(logoutInputModel)
     .output(logoutOutputModel)
     .mutation(async({ctx})=>{
+      const refreshToken = getRefreshTokenCookie(ctx)
       clearAuthenticationCookie(ctx)
+      clearRefreshTokenCookie(ctx)
+      if(refreshToken) await userService.deleteRefreshToken(refreshToken)
+
       return { success: true }
     }),
 

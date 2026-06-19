@@ -1,10 +1,11 @@
 import { createHmac, randomBytes } from 'node:crypto'
 import * as JWT from 'jsonwebtoken'
-import {db, eq, ne} from "@repo/database"
+import {db, eq} from "@repo/database"
 import {usersTable} from "@repo/database/models/user"
 import { env } from '../env'
 import { createUserWithEmailAndPasswordInput, CreateUserWithEmailAndPasswordInputType, generateUserTokenPayload, GenerateUserTokenPayloadType, signInUserWithEmailAndPasswordInput, SignInUserWithEmailAndPasswordInputType, updateUserFullNameInput, UpdateUserFullNameInputType } from './model'
 import { CustomError } from '../utils/errors'
+import { refreshTokensTable } from '@repo/database/schema'
 
 class UserService {
 
@@ -20,11 +21,12 @@ class UserService {
 
     private async generateUserToken (payload:GenerateUserTokenPayloadType ) {
         const {id} = await generateUserTokenPayload.parseAsync(payload)
-        const token = JWT.sign({id},env.JWT_SECRET)
-
+        const accessToken = JWT.sign({id},env.JWT_SECRET,{expiresIn:'24h'})
+        const refreshToken = JWT.sign({id},env.JWT_SECRET,{expiresIn:'7d'})
         //why do i returning object? i might need to return more thing: Using Open close design pattern
         return {
-            token
+            accessToken,
+            refreshToken
         }
 
     }
@@ -35,6 +37,16 @@ class UserService {
         } catch (error) {
             throw CustomError.unAuthorized("Invalid user token")
         }
+    }
+
+    private async storeRefreshToken(userId: string, refreshToken: string){
+        const result = await db.insert(refreshTokensTable).values({
+            userId,
+            token: refreshToken,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        }).returning({ id: refreshTokensTable.id })
+
+        if (!result || result.length === 0) throw CustomError.internal("Something went wrong")
     }
 
     public async getUserInfoById(id:string){
@@ -69,11 +81,14 @@ class UserService {
 
         const userId = insertUserResult[0].id
 
-        const {token} = await this.generateUserToken({id:userId })
+        const {refreshToken,accessToken} = await this.generateUserToken({id:userId })
+
+        await this.storeRefreshToken(userId,refreshToken)
 
         return {
             id: userId,
-            token
+            refreshToken,
+            accessToken
         }
 
        
@@ -97,15 +112,24 @@ class UserService {
             throw CustomError.unAuthorized("Invalid credentials")
         }
 
-        const {token} = await this.generateUserToken({id:existingUserWithEmail.id })
+        const userId = existingUserWithEmail.id
+        
+        const {accessToken,refreshToken} = await this.generateUserToken({id:userId})
 
+        await this.storeRefreshToken(userId,refreshToken)
 
+        
         return {
             id:existingUserWithEmail.id,
-            token
+            accessToken,
+            refreshToken
         }
 
 
+    }
+
+    public async deleteRefreshToken(token: string) {
+        await db.delete(refreshTokensTable).where(eq(refreshTokensTable.token, token))
     }
 
     public async updateUserFullName(id: string, payload: UpdateUserFullNameInputType) {
@@ -121,6 +145,34 @@ class UserService {
         return {
             id:id
         }
+    }
+
+    public async verifyAndRotateRefreshToken(token: string){
+        const result = await db.select().from(refreshTokensTable).where(eq(refreshTokensTable.token,token))
+        
+        if(!result || result.length === 0 || !result[0]) throw CustomError.unAuthorized("Invalid refresh token")
+        
+        const tokenRecord = result[0]
+        const userId = tokenRecord.userId
+
+        if (!tokenRecord?.expiresAt || tokenRecord.expiresAt < new Date()) {
+
+            throw CustomError.unAuthorized("Refresh token expired")
+        }
+
+        await db.delete(refreshTokensTable).where(eq(refreshTokensTable.token,tokenRecord.token))
+
+        const {accessToken,refreshToken} = await this.generateUserToken({id:userId})
+        
+        await this.storeRefreshToken(userId,refreshToken)
+
+        return {
+            id:tokenRecord.userId,
+            accessToken,
+            refreshToken
+        }
+
+
     }
 
 }

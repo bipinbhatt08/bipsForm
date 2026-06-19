@@ -5,6 +5,7 @@ import type { TRPCContext } from '../context'
 const ONE_MINUTE = 60 * 1000 //miliseconds
 const ONE_HOUR  = 60 * ONE_MINUTE
 const ONE_DAY = 24 * ONE_HOUR
+const ONE_WEEK = 7 * ONE_DAY
 const ONE_MONTH = 30 * ONE_DAY
 const ONE_YEAR = 12 * ONE_MONTH
 
@@ -44,7 +45,7 @@ export function clearCookieFacotory(res:Response){
 
 const AUTHENTICATION_COOKIE_NAME = 'authentication-token'
 export function setAuthenticationCookie(ctx:TRPCContext,accessToken:string){
-     ctx.createCookie(AUTHENTICATION_COOKIE_NAME,accessToken)
+     ctx.createCookie(AUTHENTICATION_COOKIE_NAME,accessToken,{...defaultCookieOption, maxAge:ONE_DAY})
 }
 
 export function getAuthenticationCookie (ctx:TRPCContext){
@@ -52,4 +53,15 @@ export function getAuthenticationCookie (ctx:TRPCContext){
 }
 export function clearAuthenticationCookie (ctx:TRPCContext){
     ctx.clearCookie(AUTHENTICATION_COOKIE_NAME)
+}
+
+const REFRESH_TOKEN_NAME = 'refresh-token'
+export function setRefreshTokenCookie(ctx:TRPCContext,refreshToken:string){
+     ctx.createCookie(REFRESH_TOKEN_NAME,refreshToken,{...defaultCookieOption,maxAge:ONE_WEEK})
+}
+export function getRefreshTokenCookie(ctx:TRPCContext){
+    return  ctx.getCookie(REFRESH_TOKEN_NAME)
+}
+export function clearRefreshTokenCookie(ctx:TRPCContext){
+     ctx.clearCookie(REFRESH_TOKEN_NAME)
 }

@@ -2,7 +2,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { OpenApiMeta } from "trpc-to-openapi";
 
 import { createContext } from "./context";
-import { getAuthenticationCookie } from "./utils/cookie";
+import { getAuthenticationCookie, getRefreshTokenCookie, setAuthenticationCookie, setRefreshTokenCookie } from "./utils/cookie";
 import { CustomError } from "@repo/services/utils/errors";
 import { userService } from "./services";
 
@@ -19,16 +19,34 @@ export const publicProcedure = tRPCContext.procedure;
 export const authenticatedProcedure = tRPCContext.procedure.use(async(options)=>{
   const {ctx } = options
   const userToken = getAuthenticationCookie(ctx)
-  if(!userToken) throw CustomError.unAuthorized("User is not logged in")
 
-  const {id}= await userService.verifyAndDecodeUserToken(userToken)
+  try {
+    const {id}= await userService.verifyAndDecodeUserToken(userToken)
+    return options.next({
+      ctx:{
+        ...ctx,
+        user:{id}
+  
+      }
+    })
+  } catch (error) {
+    if (!(error instanceof TRPCError && error.code === "UNAUTHORIZED")) throw error
+  }
 
-   
+  const token = getRefreshTokenCookie(ctx)// refresh token
+  if(!token) throw CustomError.unAuthorized("No refresh token")
+  
+  const {refreshToken,id,accessToken} = await userService.verifyAndRotateRefreshToken(token)
+
+  setRefreshTokenCookie(ctx,refreshToken)
+  setAuthenticationCookie(ctx,accessToken)
+
   return options.next({
     ctx:{
       ...ctx,
       user:{id}
-
     }
   })
+
+
 })
