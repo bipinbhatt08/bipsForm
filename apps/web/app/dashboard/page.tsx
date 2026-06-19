@@ -2,11 +2,12 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { IconChartBar, IconFileDescription, IconLoader2, IconUsers } from "@tabler/icons-react"
+import { IconChartBar, IconFileDescription, IconUsers } from "@tabler/icons-react"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
+import { Skeleton } from "~/components/ui/skeleton"
 import { useGetDashboardStats } from "~/hooks/api/submission"
 
 export default function DashboardPage() {
@@ -24,9 +25,51 @@ export default function DashboardPage() {
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 lg:px-6">
 
       {isLoading ? (
-        <div className="flex flex-1 items-center justify-center py-24">
-          <IconLoader2 className="size-6 animate-spin text-muted-foreground" />
-        </div>
+        <>
+          {/* Stat card skeletons */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[0, 1, 2].map((i) => (
+              <Card key={i}>
+                <CardContent className="flex items-center justify-between p-6">
+                  <div className="flex flex-col gap-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-16" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                  <Skeleton className="size-12 rounded-xl" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Chart skeleton */}
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-4 w-36" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-65 w-full rounded-lg" />
+            </CardContent>
+          </Card>
+
+          {/* Top forms skeleton */}
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-4 w-44" />
+            </CardHeader>
+            <CardContent className="p-0">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center justify-between gap-4 px-6 py-3 border-b last:border-0">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-3 w-3" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </>
       ) : (
         <>
           {/* Stat cards */}
