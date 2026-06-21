@@ -56,7 +56,8 @@ A full-stack form builder. Create forms, collect responses, and analyze results 
 ### Auth
 - Email/password signup and login
 - Passwords hashed with HMAC-SHA256 + per-user random salt
-- JWT stored in `httpOnly` cookie
+- Access token (24 h) and refresh token (7 d) — both stored in `httpOnly` cookies
+- Refresh tokens are persisted to the database and rotated on every use (`authenticatedProcedure` handles this transparently)
 - Protected dashboard routes via Next.js middleware
 
 ---
@@ -115,10 +116,9 @@ bipsForm/
 │   │   │   ├── (auth)/
 │   │   │   │   ├── login/           # Sign in page
 │   │   │   │   └── signup/          # Registration page
-│   │   │   ├── (landing)/
-│   │   │   │   ├── page.tsx         # Landing page
-│   │   │   │   ├── explore/         # Browse public forms
-│   │   │   │   └── pricing/         # Pricing page
+│   │   │   ├── page.tsx             # Landing page
+│   │   │   ├── explore/             # Browse public forms
+│   │   │   ├── pricing/             # Pricing page
 │   │   │   ├── dashboard/
 │   │   │   │   ├── page.tsx         # Stats + charts
 │   │   │   │   └── forms/
@@ -226,6 +226,15 @@ bipsForm/
 | `values` | jsonb | `{ [fieldId]: value }` |
 | `created_at` | timestamp | |
 
+### `refresh_tokens`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | `gen_random_uuid()` |
+| `user_id` | UUID FK | → users.id (cascade delete) |
+| `token` | text | UNIQUE; the signed JWT refresh token |
+| `expires_at` | timestamp | 7 days from issuance |
+| `created_at` | timestamp | |
+
 ---
 
 ## API Reference
@@ -236,9 +245,10 @@ Interactive docs: [api.bipsform.com/docs](https://api.bipsform.com/docs)
 | Procedure | Type | Description |
 |---|---|---|
 | `auth.createUserWithEmailAndPassword` | mutation | Register a new user |
-| `auth.signInUserWithEmailAndPassword` | mutation | Sign in, sets `httpOnly` cookie |
-| `auth.logout` | mutation | Clears auth cookie |
+| `auth.signInUserWithEmailAndPassword` | mutation | Sign in, sets access + refresh token cookies |
+| `auth.logout` | mutation | Clears auth cookies and deletes the refresh token from DB |
 | `auth.getLoggedInUserInfo` | query | Returns current user info |
+| `auth.updateUserFullName` | mutation | Update the authenticated user's display name |
 
 ### Forms
 | Procedure | Type | Description |
@@ -315,7 +325,7 @@ chmod +x setup.sh
 
 ```bash
 docker-compose up -d
-# PostgreSQL at localhost:5432
+# PostgreSQL 15 at localhost:5432
 # user: postgres | password: postgres | db: dev
 ```
 
