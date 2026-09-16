@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { GlobalProviders } from "~/providers/global";
@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   keywords: ["form builder", "online forms", "survey builder", "conditional logic", "BipsForm", "always on form"],
   authors: [{ name: "BipsForm" }],
   creator: "BipsForm",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "BipsForm — Always on form",
     description: "Always on form — build, share and collect responses at scale. Stunning themes, conditional logic, real-time dashboard.",
@@ -52,6 +55,11 @@ export const metadata: Metadata = {
     shortcut: "/icon.svg",
     apple: "/icon.svg",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0891B2",
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
