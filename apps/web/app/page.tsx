@@ -7,10 +7,12 @@ import {
   IconBolt,
   IconChartBar,
   IconCheck,
+  IconDownload,
   IconForms,
   IconLayoutDashboard,
   IconListDetails,
   IconPalette,
+  IconQrcode,
   IconShare,
   IconShieldCheck,
   IconSparkles,
@@ -34,55 +36,56 @@ function formatStatNum(n: number | null): string {
   return String(n)
 }
 
+const STAR_PATH = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+
 function Hero({ isLoggedIn, totalForms, totalResponses, isStatsLoading }: { isLoggedIn: boolean; totalForms: number | null; totalResponses: number | null; isStatsLoading: boolean }) {
   return (
-    <section className="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-20">
-      {/* Dot grid */}
-      <div
-        className="pointer-events-none absolute inset-0 -z-20"
-        style={{
-          backgroundImage: "radial-gradient(circle, rgba(6,182,212,0.12) 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-        }}
-      />
-      {/* Radial fade over dot grid */}
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-transparent to-background" />
-      {/* Cyan glow orb */}
-      <div
-        className="pointer-events-none absolute -z-10 left-1/2 top-[-80px] -translate-x-1/2 rounded-full opacity-30 blur-[100px]"
-        style={{ width: 700, height: 500, background: "radial-gradient(ellipse, #06B6D4 0%, #0891B2 40%, transparent 70%)" }}
-      />
+    <section className="relative overflow-hidden pt-28 pb-0 sm:pt-36">
 
-      <div className="mx-auto max-w-5xl px-5 sm:px-8 text-center">
-        {/* Announcement pill */}
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm text-primary mb-8">
-          <IconSparkles className="size-3.5" />
-          <span className="font-medium">Always on form — build, share &amp; collect at scale</span>
+      {/* ── Background layers ── */}
+      {/* 1. Grid lines */}
+      <div className="hero-grid pointer-events-none absolute inset-0" />
+      {/* 2. Crisp radial spotlight — no blur, defined center glow */}
+      <div className="pointer-events-none absolute inset-0" style={{
+        background: [
+          "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(6,182,212,0.12) 0%, transparent 100%)",
+          "radial-gradient(ellipse 40% 30% at 72% 20%, rgba(139,92,246,0.07) 0%, transparent 100%)",
+          "radial-gradient(ellipse 90% 55% at 50% -5%, transparent 25%, var(--background) 72%)",
+          "linear-gradient(to bottom, transparent 35%, var(--background) 100%)",
+        ].join(", "),
+      }} />
+
+      {/* ── Text content ── */}
+      <div className="relative mx-auto max-w-5xl px-5 sm:px-8 text-center">
+
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm text-primary mb-8 animate-fade-in-up badge-glow">
+          <IconSparkles className="size-3.5 shrink-0" />
+          <span className="font-medium">Build, share &amp; collect — zero infrastructure needed</span>
         </div>
 
-        <h1 className="text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl leading-[1.08]">
+        <h1 className="text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl leading-[1.07] animate-fade-in-up" style={{ animationDelay: '100ms' }}>
           Forms your users{" "}
           <br className="hidden sm:block" />
           <span
-            className="inline-block"
             style={{
-              background: "linear-gradient(135deg, #06B6D4 0%, #0891B2 50%, #8B5CF6 100%)",
+              background: "linear-gradient(135deg, #06B6D4 0%, #0891B2 40%, #8B5CF6 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
+              display: "inline-block",
             }}
           >
             actually want to fill
           </span>
         </h1>
 
-        <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          BipsForm lets you build stunning, themed forms in minutes. Share a link, watch responses roll in — all with zero infrastructure headache.
+        <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+          Build stunning themed forms in minutes. Share via link or QR code. Watch responses arrive in real-time and export to CSV — completely free to start.
         </p>
 
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-in-up" style={{ animationDelay: '280ms' }}>
           {isLoggedIn ? (
-            <Button asChild size="lg" className="gap-2 font-semibold px-8 h-12 shadow-xl shadow-primary/25 text-base">
+            <Button asChild size="lg" className="gap-2 font-semibold px-8 h-12 shadow-xl shadow-primary/30 text-base">
               <Link href="/dashboard">
                 <IconLayoutDashboard className="size-5" />
                 Go to Dashboard
@@ -90,110 +93,196 @@ function Hero({ isLoggedIn, totalForms, totalResponses, isStatsLoading }: { isLo
             </Button>
           ) : (
             <>
-              <Button asChild size="lg" className="gap-2 font-semibold px-8 h-12 shadow-xl shadow-primary/30 text-base bg-primary hover:bg-primary/90">
+              <Button asChild size="lg" className="gap-2 font-semibold px-8 h-12 text-base shadow-xl shadow-primary/30">
                 <Link href="/signup">
                   Start for free
                   <IconArrowRight className="size-5" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="px-8 h-12 text-base border-border/60 hover:border-primary/50 hover:bg-primary/5">
+              <Button asChild size="lg" variant="outline" className="px-8 h-12 text-base border-border/60 hover:border-primary/40 hover:bg-primary/5">
                 <Link href="/login">Log in to your account</Link>
               </Button>
             </>
           )}
         </div>
 
-        <p className="mt-4 text-xs text-muted-foreground/60 tracking-wide">
+        <p className="mt-4 text-xs text-muted-foreground/50 tracking-wide animate-fade-in-up" style={{ animationDelay: '350ms' }}>
           Free forever · No credit card required · Open source
         </p>
 
         {/* Stats strip */}
-        <div className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-px rounded-2xl border border-border/40 overflow-hidden bg-border/40 max-w-2xl mx-auto">
+        <div className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-px rounded-2xl border border-border/40 overflow-hidden bg-border/20 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '420ms' }}>
           {[
-            { value: totalForms,     label: "Forms published",     live: true  },
-            { value: totalResponses, label: "Responses collected",  live: true  },
-            { value: "9",           label: "Field types",          live: false },
-            { value: "5",           label: "Themes",               live: false },
+            { value: totalForms,     label: "Forms published",    live: true  },
+            { value: totalResponses, label: "Responses collected", live: true  },
+            { value: "9",            label: "Field types",         live: false },
+            { value: "5",            label: "Beautiful themes",    live: false },
           ].map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center justify-center gap-1 bg-background py-5 px-4 text-center">
+            <div key={stat.label} className="flex flex-col items-center justify-center gap-1.5 bg-background py-5 px-4 text-center">
               <div className="flex items-center gap-1.5">
                 {isStatsLoading && stat.live ? (
                   <div className="h-7 w-12 rounded-md bg-muted animate-pulse" />
                 ) : (
-                  <span className="text-2xl font-bold tabular-nums">
+                  <span className="text-2xl font-bold tabular-nums tracking-tight">
                     {stat.live ? formatStatNum(stat.value as number | null) : stat.value}
                   </span>
                 )}
                 {stat.live && !isStatsLoading && (
-                  <span className="mt-0.5 size-1.5 rounded-full bg-primary/50 animate-pulse" />
+                  <span className="mt-0.5 size-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <p className="text-[11px] text-muted-foreground/70 font-medium">{stat.label}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Product preview */}
-      <div className="mx-auto mt-20 max-w-3xl px-5 sm:px-8">
+      {/* ── Product mockup ── */}
+      <div className="relative mx-auto mt-16 max-w-6xl px-4 sm:px-8 animate-scale-in" style={{ animationDelay: '560ms' }}>
+
         <div
-          className="rounded-2xl border border-border/50 bg-card shadow-2xl overflow-hidden"
-          style={{ boxShadow: "0 0 0 1px rgba(6,182,212,0.08), 0 32px 64px rgba(0,0,0,0.5), 0 0 80px rgba(6,182,212,0.06)" }}
+          className="mockup-card"
+          style={{
+            borderRadius: 20,
+            background: "linear-gradient(135deg, rgba(6,182,212,0.5) 0%, rgba(139,92,246,0.35) 55%, rgba(59,130,246,0.3) 100%)",
+            padding: "1.5px",
+          }}
         >
-          {/* Window chrome */}
-          <div className="flex items-center gap-2 border-b border-border/50 bg-muted/40 px-4 py-3">
-            <div className="flex gap-1.5">
-              <div className="size-3 rounded-full bg-destructive/60" />
-              <div className="size-3 rounded-full bg-yellow-500/60" />
-              <div className="size-3 rounded-full bg-green-500/60" />
-            </div>
-            <div className="flex-1 mx-3">
-              <div className="h-5 rounded-md bg-muted/60 border border-border/40 flex items-center px-3 gap-2">
-                <div className="size-2.5 rounded-full bg-green-500/50" />
-                <div className="h-2 w-40 rounded-full bg-muted-foreground/20" />
+          <div className="rounded-[calc(1.25rem-1.5px)] bg-card overflow-hidden">
+
+            {/* Browser chrome */}
+            <div className="flex items-center gap-2 border-b border-border/40 bg-muted/30 px-4 py-3">
+              <div className="flex gap-1.5 shrink-0">
+                <div className="size-2.5 rounded-full bg-rose-400/70" />
+                <div className="size-2.5 rounded-full bg-amber-400/70" />
+                <div className="size-2.5 rounded-full bg-emerald-400/70" />
+              </div>
+              <div className="flex-1 flex items-center justify-center">
+                <div className="h-5 w-64 rounded-md bg-muted/50 border border-border/40 flex items-center px-3 gap-2">
+                  <div className="size-2 rounded-full bg-emerald-400/60" />
+                  <span className="text-[9px] text-muted-foreground/50 font-mono truncate">bipsform.app/forms/product-feedback</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="hidden sm:flex h-5 items-center gap-1.5 px-2.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                  <div className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400">Published</span>
+                </div>
               </div>
             </div>
-          </div>
-          {/* Form content mock */}
-          <div className="grid grid-cols-[220px_1fr] divide-x divide-border/40 min-h-[380px]">
-            {/* Left sidebar — form fields list */}
-            <div className="bg-muted/20 p-4 flex flex-col gap-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 px-1 mb-1">Fields</p>
-              {[
-                { label: "Full Name", type: "Short text", color: "bg-blue-500/20 text-blue-400" },
-                { label: "Email address", type: "Email", color: "bg-rose-500/20 text-rose-400" },
-                { label: "How did you hear?", type: "Single select", color: "bg-indigo-500/20 text-indigo-400" },
-                { label: "Overall rating", type: "Rating", color: "bg-orange-500/20 text-orange-400" },
-                { label: "Your message", type: "Long text", color: "bg-violet-500/20 text-violet-400" },
-              ].map((f, i) => (
-                <div
-                  key={f.label}
-                  className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 ${i === 2 ? "bg-primary/10 border border-primary/20" : "hover:bg-muted/40"}`}
-                >
-                  <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted/80 text-[10px] font-bold text-muted-foreground">
-                    {i + 1}
+
+            {/* 3-panel layout */}
+            <div className="grid grid-cols-1 sm:grid-cols-[210px_1fr] lg:grid-cols-[200px_1fr_185px] divide-y sm:divide-y-0 sm:divide-x divide-border/30 min-h-[480px]">
+
+              {/* Panel 1 — Field builder sidebar (hidden on mobile) */}
+              <div className="hidden sm:flex flex-col bg-muted/15 p-4 gap-1">
+
+                <div className="flex items-center justify-between px-1 mb-3">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40">Form Fields</p>
+                  <span className="text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">5</span>
+                </div>
+
+                {[
+                  { label: "Full Name",         type: "Short text",    color: "text-blue-600 dark:text-blue-400 bg-blue-500/10" },
+                  { label: "Email address",     type: "Email",         color: "text-rose-600 dark:text-rose-400 bg-rose-500/10" },
+                  { label: "Overall rating",    type: "Rating",        color: "text-amber-700 dark:text-amber-400 bg-amber-500/10", active: true },
+                  { label: "How did you hear?", type: "Single select", color: "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10" },
+                  { label: "Your message",      type: "Long text",     color: "text-violet-600 dark:text-violet-400 bg-violet-500/10" },
+                ].map((f, i) => (
+                  <div
+                    key={f.label}
+                    className={`flex items-center gap-2 rounded-xl px-2.5 py-2 border transition-all ${
+                      f.active ? "bg-primary/10 border-primary/20 shadow-sm shadow-primary/5" : "border-transparent hover:bg-muted/40"
+                    }`}
+                  >
+                    <div className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${
+                      f.active ? "bg-primary text-primary-foreground" : "bg-muted/80 text-muted-foreground"
+                    }`}>
+                      {i + 1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-medium truncate leading-none mb-0.5">{f.label}</p>
+                      <span className={`text-[8px] font-semibold rounded px-1.5 py-0.5 inline-block ${f.color}`}>{f.type}</span>
+                    </div>
+                    {f.active && <div className="size-1.5 rounded-full bg-primary shrink-0" />}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-medium truncate">{f.label}</p>
-                    <p className={`text-[9px] font-medium rounded px-1 w-fit mt-0.5 ${f.color}`}>{f.type}</p>
+                ))}
+
+                <div className="mt-auto pt-3 border-t border-border/30">
+                  <div className="flex items-center gap-1.5 rounded-lg border border-dashed border-border/50 px-2.5 py-1.5 cursor-pointer hover:border-primary/30 transition-colors">
+                    <span className="text-[9px] text-muted-foreground/40 font-medium">+ Add field</span>
                   </div>
                 </div>
-              ))}
-            </div>
-            {/* Right canvas — active field editor */}
-            <div className="p-6 flex flex-col gap-5">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-3">Preview</p>
-                <div className="rounded-xl border border-border/50 bg-muted/20 p-5 space-y-4">
+              </div>
+
+              {/* Panel 2 — Live form preview */}
+              <div className="flex flex-col p-6 sm:p-7 gap-5">
+
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="flex items-baseline gap-1 mb-1.5">
-                      <p className="text-sm font-medium">How did you hear about us?</p>
-                      <span className="text-xs text-destructive">*</span>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground/40">Live Preview</span>
                     </div>
+                    <h3 className="text-base font-bold leading-tight">Product Feedback</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">Share your experience with our product</p>
+                  </div>
+                  {/* Theme swatches */}
+                  <div className="flex gap-1 shrink-0 items-center">
+                    {[
+                      { c: "#71717a", active: false },
+                      { c: "#92400e", active: false },
+                      { c: "#00ff88", active: true },
+                      { c: "#db2777", active: false },
+                      { c: "#15803d", active: false },
+                    ].map(({ c, active }, i) => (
+                      <div
+                        key={i}
+                        className={`rounded-full transition-all ${active ? "size-4 ring-2 ring-primary ring-offset-1 ring-offset-card" : "size-3 opacity-50"}`}
+                        style={{ background: c }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 flex-1">
+
+                  {/* Filled name field */}
+                  <div>
+                    <p className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest mb-1">Full Name</p>
+                    <div className="rounded-lg border border-border/50 bg-muted/20 px-3 py-2 text-sm">Sarah Chen</div>
+                  </div>
+
+                  {/* Filled email */}
+                  <div>
+                    <p className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest mb-1">Email Address</p>
+                    <div className="rounded-lg border border-border/50 bg-muted/20 px-3 py-2 text-sm text-muted-foreground/70">sarah@example.com</div>
+                  </div>
+
+                  {/* Active rating field */}
+                  <div>
+                    <p className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-1.5">
+                      Overall Rating <span className="text-destructive">*</span>
+                    </p>
+                    <div className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5 flex items-center gap-1">
+                      {[1,2,3,4,5].map((s) => (
+                        <svg key={s} className="size-5" viewBox="0 0 20 20" style={{ fill: s <= 4 ? "#F59E0B" : "none", stroke: s <= 4 ? "none" : "#d1d5db", strokeWidth: 1.5 }}>
+                          <path d={STAR_PATH} />
+                        </svg>
+                      ))}
+                      <span className="text-sm font-bold text-amber-500 ml-1.5">4 / 5</span>
+                    </div>
+                  </div>
+
+                  {/* Select field */}
+                  <div>
+                    <p className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest mb-1.5">How did you hear about us?</p>
                     <div className="flex flex-col gap-1.5">
                       {["Twitter / X", "Google Search", "A friend", "Product Hunt"].map((opt, i) => (
-                        <div key={opt} className={`flex items-center gap-2.5 rounded-lg border px-3 py-2 text-xs transition-colors ${i === 1 ? "border-primary bg-primary/10 text-primary" : "border-border/50 text-muted-foreground"}`}>
-                          <div className={`size-3 rounded-full border flex items-center justify-center ${i === 1 ? "border-primary bg-primary" : "border-muted-foreground/40"}`}>
+                        <div key={opt} className={`flex items-center gap-2.5 rounded-lg border px-3 py-1.5 text-xs cursor-pointer transition-colors ${
+                          i === 1 ? "border-primary/50 bg-primary/8 text-primary font-medium" : "border-border/40 text-muted-foreground hover:border-border/70"
+                        }`}>
+                          <div className={`size-3 rounded-full border-2 flex items-center justify-center shrink-0 ${i === 1 ? "border-primary bg-primary" : "border-muted-foreground/30"}`}>
                             {i === 1 && <div className="size-1.5 rounded-full bg-white" />}
                           </div>
                           {opt}
@@ -202,14 +291,98 @@ function Hero({ isLoggedIn, totalForms, totalResponses, isStatsLoading }: { isLo
                     </div>
                   </div>
                 </div>
+
+                <button className="w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold py-2.5 flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors mt-2">
+                  Submit Response
+                  <IconArrowRight className="size-4" />
+                </button>
               </div>
-              <div className="flex items-center gap-2 mt-auto">
-                <div className="size-2 rounded-full bg-primary animate-pulse" />
-                <p className="text-[11px] text-muted-foreground">Conditional logic active on this field</p>
+
+              {/* Panel 3 — Response analytics (desktop only) */}
+              <div className="hidden lg:flex flex-col bg-muted/15 p-4 gap-3">
+
+                <div className="flex items-center justify-between">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40">Responses</p>
+                  <div className="flex items-center gap-1">
+                    <div className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400">Live</span>
+                  </div>
+                </div>
+
+                {/* Big counter */}
+                <div className="rounded-xl border border-border/40 bg-card p-3 text-center">
+                  <p className="text-3xl font-black tabular-nums leading-none">127</p>
+                  <p className="text-[9px] text-muted-foreground mt-1">Total responses</p>
+                  <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5">
+                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400">+12 today</span>
+                  </div>
+                </div>
+
+                {/* Mini bar chart */}
+                <div>
+                  <p className="text-[8px] font-medium text-muted-foreground/40 mb-1.5">Last 7 days</p>
+                  <div className="flex items-end gap-1 h-10">
+                    {[30, 55, 42, 78, 61, 88, 100].map((h, i) => (
+                      <div
+                        key={i}
+                        className="flex-1 rounded-t-sm"
+                        style={{
+                          height: `${h}%`,
+                          background: i === 6 ? "rgba(6,182,212,0.85)" : i === 5 ? "rgba(6,182,212,0.5)" : "rgba(6,182,212,0.2)",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recent submissions */}
+                <div>
+                  <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-1.5">Recent</p>
+                  <div className="flex flex-col gap-1">
+                    {[
+                      { name: "Sarah C.", time: "just now", rating: 4 },
+                      { name: "James R.", time: "3m ago",   rating: 5 },
+                      { name: "Priya N.", time: "8m ago",   rating: 5 },
+                    ].map((r) => (
+                      <div key={r.name} className="flex items-center gap-1.5 rounded-lg bg-card border border-border/30 px-2 py-1.5">
+                        <div className="size-5 rounded-full bg-primary/15 text-[8px] font-bold text-primary flex items-center justify-center shrink-0">
+                          {r.name[0]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[9px] font-semibold truncate leading-none">{r.name}</p>
+                          <p className="text-[8px] text-muted-foreground/40 leading-none mt-0.5">{r.time}</p>
+                        </div>
+                        <div className="flex gap-0.5 shrink-0">
+                          {[...Array(r.rating)].map((_, i) => (
+                            <svg key={i} className="size-2.5" viewBox="0 0 20 20" style={{ fill: "#F59E0B" }}>
+                              <path d={STAR_PATH} />
+                            </svg>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Export + QR */}
+                <div className="mt-auto pt-2 border-t border-border/30 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5 rounded-lg border border-border/40 px-2.5 py-2 cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-colors">
+                    <IconDownload className="size-3 text-primary shrink-0" />
+                    <span className="text-[9px] font-semibold text-muted-foreground">Export CSV</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 rounded-lg border border-border/40 px-2.5 py-2 cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-colors">
+                    <IconQrcode className="size-3 text-primary shrink-0" />
+                    <span className="text-[9px] font-semibold text-muted-foreground">Share QR Code</span>
+                  </div>
+                </div>
               </div>
+
             </div>
           </div>
         </div>
+
+        {/* Bottom fade-out so the mockup dissolves into the next section */}
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-background" />
       </div>
     </section>
   )
@@ -299,14 +472,28 @@ const FEATURES = [
   {
     icon: IconShare,
     title: "Instant public link",
-    description: "Each form gets a unique, shareable URL. Copy and paste it anywhere — emails, Slack, social media, or your own website.",
+    description: "Each form gets a unique, shareable URL. Copy and paste it anywhere — emails, Slack, social media, or embed directly in your website.",
     color: "from-green-500/20 to-emerald-500/20",
     iconColor: "text-green-400",
   },
   {
+    icon: IconQrcode,
+    title: "QR code sharing",
+    description: "Generate a scannable QR code for any form instantly. Print it on flyers, receipts, or screens — anyone can scan and fill in seconds.",
+    color: "from-teal-500/20 to-cyan-500/20",
+    iconColor: "text-teal-400",
+  },
+  {
+    icon: IconDownload,
+    title: "CSV export",
+    description: "Export all your responses to a CSV file with one click. Open in Excel, Google Sheets, or any analysis tool — no lock-in, your data is always yours.",
+    color: "from-indigo-500/20 to-blue-500/20",
+    iconColor: "text-indigo-400",
+  },
+  {
     icon: IconShieldCheck,
     title: "Access & expiry controls",
-    description: "Password protect forms, set response limits, lock them, or add an expiry date. You stay in full control of who can respond and when.",
+    description: "Set response limits, lock forms, or add an expiry date. You stay in full control of who can respond and when — no more out-of-date forms collecting stale data.",
     color: "from-rose-500/20 to-red-500/20",
     iconColor: "text-rose-400",
   },
@@ -328,18 +515,17 @@ function Features() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {FEATURES.map((f) => {
             const Icon = f.icon
             return (
               <div
                 key={f.title}
-                className="group relative rounded-2xl border border-border/50 bg-card/60 p-6 overflow-hidden hover:border-border transition-all duration-300 hover:shadow-lg"
-                style={{ transition: "border-color 200ms, box-shadow 200ms, transform 200ms" }}
+                className="group relative rounded-2xl border border-border/50 bg-card/60 p-6 overflow-hidden hover:border-border/80 hover:shadow-lg transition-all duration-300"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${f.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                 <div className="relative">
-                  <div className={`mb-4 inline-flex size-11 items-center justify-center rounded-xl bg-muted/60 ${f.iconColor} group-hover:scale-110 transition-transform duration-200`}>
+                  <div className={`mb-4 inline-flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${f.color} border border-white/5 ${f.iconColor} group-hover:scale-110 group-hover:shadow-lg transition-all duration-200`}>
                     <Icon className="size-5" />
                   </div>
                   <h3 className="font-semibold text-base mb-2">{f.title}</h3>
@@ -539,7 +725,7 @@ const TESTIMONIALS = [
 
 function Testimonials() {
   return (
-    <section className="py-16 sm:py-20 border-t border-border/30 bg-slate-50 dark:bg-muted/20">
+    <section className="py-16 sm:py-20 border-t border-border/30 bg-primary/[0.025] dark:bg-muted/10 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <div className="text-center mb-14">
           <Badge className="mb-5 bg-primary/10 text-primary border-primary/20 hover:bg-primary/10 px-4 py-1.5 text-xs font-semibold tracking-widest uppercase">
@@ -561,8 +747,9 @@ function Testimonials() {
                   </svg>
                 ))}
               </div>
+              <div className="text-5xl font-bold text-primary/20 leading-none -mb-1 select-none">&ldquo;</div>
               <p className="text-sm text-muted-foreground leading-relaxed flex-1">
-                &ldquo;{t.quote}&rdquo;
+                {t.quote}
               </p>
               <div className="flex items-center gap-3 pt-2 border-t border-border/30">
                 <div
@@ -702,7 +889,7 @@ function Pricing() {
                 className={`w-full font-semibold h-10 mb-7 ${
                   plan.popular
                     ? "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
-                    : "variant-outline border-border/60"
+                    : "border-border/60"
                 }`}
                 variant={plan.popular ? "default" : "outline"}
               >
@@ -739,7 +926,7 @@ function Pricing() {
 
 function CTABanner({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
-    <section className="py-16 sm:py-20 border-t border-border/30 bg-slate-50 dark:bg-muted/20">
+    <section className="py-16 sm:py-20 border-t border-border/30 bg-primary/[0.025] dark:bg-muted/10 backdrop-blur-sm">
       <div className="mx-auto max-w-4xl px-5 sm:px-8">
         <div
           className="relative overflow-hidden rounded-3xl border border-primary/20 px-8 py-16 sm:px-16 text-center"
@@ -831,7 +1018,7 @@ function Footer() {
   }
 
   return (
-    <footer className="border-t border-border/30 bg-slate-50 dark:bg-muted/20 pt-14 pb-8">
+    <footer className="border-t border-border/30 bg-primary/[0.025] dark:bg-muted/10 backdrop-blur-sm pt-14 pb-8">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
